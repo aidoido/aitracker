@@ -8,3 +8,11 @@ Simple Node + Express + PostgreSQL app to log MS Teams support requests.
 
 ```bash
 npm install
+
+
+cp .env.example .env
+# edit DATABASE_URL to match your Postgres
+
+cp .env.example .env
+# edit DATABASE_URL to match your Postgres
+

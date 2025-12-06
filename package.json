@@ -1,7 +1,7 @@
 {
-  "name": "Support-tracker",
+  "name": "support-tracker",
   "version": "1.0.0",
-  "description": "Support request tracker",
+  "description": "support request tracker",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
