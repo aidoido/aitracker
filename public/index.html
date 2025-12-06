@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MS Teams Support Tracker</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 0 10px;
+    }
+    h1 {
+      text-align: center;
+    }
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .form-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .form-row > div {
+      flex: 1;
+      min-width: 180px;
+    }
+    label {
+      display: block;
+      font-size: 0.85rem;
+      margin-bottom: 4px;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 0.9rem;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 50px;
+    }
+    button {
+      padding: 8px 14px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+      margin-right: 8px;
+    }
+    button.primary {
+      background: #2563eb;
+      color: white;
+    }
+    .stats {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .stat-box {
+      flex: 1;
+      min-width: 160px;
+      padding: 12px;
+      border-radius: 8px;
+      background: #f3f4f6;
+      text-align: center;
+    }
+    .stat-number {
+      font-size: 1.6rem;
+      font-weight: 600;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+    th, td {
+      border: 1px solid #e5e7eb;
+      padding: 6px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: #f9fafb;
+    }
+    .badge {
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+    }
+    .badge-open {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+    .badge-closed {
+      background: #dcfce7;
+      color: #166534;
+    }
+  </style>
+</head>
+<body>
+  <h1>MS Teams Support Tracker</h1>
+
+  <div class="card">
+    <h2>Log New Support Request</h2>
+    <form id="requestForm">
+      <div class="form-row">
+        <div>
+          <label for="requester">Requester Name</label>
+          <input type="text" id="requester" required />
+        </div>
+        <div>
+          <label for="channel">Channel</label>
+          <select id="channel">
+            <option value="Teams Chat">Teams Chat</option>
+            <option value="Teams Call">Teams Call</option>
+            <option value="Email">Email</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div>
+          <label for="date">Date</label>
+          <input type="date" id="date" />
+        </div>
+        <div>
+          <label for="status">Status</label>
+          <select id="status">
+            <option value="Open">Open</option>
+            <option value="Closed">Closed</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div style="flex: 1;">
+          <label for="description">Short Description</label>
+          <textarea id="description" placeholder="Example: Fusion PR creation error"></textarea>
+        </div>
+      </div>
+      <button type="submit" class="primary">Add Request</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Stats</h2>
+    <div class="stats">
+      <div class="stat-box">
+        <div>Requests Today</div>
+        <div class="stat-number" id="todayCount">0</div>
+      </div>
+      <div class="stat-box">
+        <div>Total Requests</div>
+        <div class="stat-number" id="totalCount">0</div>
+      </div>
+      <div class="stat-box">
+        <div>Open Requests</div>
+        <div class="stat-number" id="openCount">0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>All Requests</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Requester</th>
+          <th>Channel</</th>
+          <th>Description</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="requestsBody"></tbody>
+    </table>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
