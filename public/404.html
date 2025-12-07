@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found - MS Teams Support Tracker</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .error-container {
+            text-align: center;
+            padding: 100px 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .error-code {
+            font-size: 120px;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 20px;
+            line-height: 1;
+        }
+
+        .error-title {
+            font-size: 32px;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .error-message {
+            font-size: 18px;
+            color: #7f8c8d;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .error-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .error-actions .btn-primary,
+        .error-actions .btn-secondary {
+            min-width: 120px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="error-container">
+            <div class="error-code">404</div>
+            <h1 class="error-title">Page Not Found</h1>
+            <p class="error-message">
+                The page you're looking for doesn't exist or has been moved.
+                Please check the URL or navigate back to the dashboard.
+            </p>
+
+            <div class="error-actions">
+                <button class="btn-primary" onclick="goHome()">Go to Dashboard</button>
+                <button class="btn-secondary" onclick="goBack()">Go Back</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function goHome() {
+            window.location.href = '/';
+        }
+
+        function goBack() {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                goHome();
+            }
+        }
+
+        // Auto-redirect after 10 seconds
+        setTimeout(() => {
+            goHome();
+        }, 10000);
+    </script>
+</body>
+</html>

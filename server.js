@@ -1,93 +1,103 @@
-// server.js
 const express = require('express');
+const session = require('express-session');
+const PgSession = require('connect-pg-simple')(session);
+const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const path = require('path');
-const pool = require('./db');
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Parse JSON request bodies
-app.use(express.json());
+// Database connection
+const { Pool } = require('pg');
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
 
-// Serve static frontend files from /public
+// Middleware
+app.use(helmet());
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100 // limit each IP to 100 requests per windowMs
+});
+app.use(limiter);
+
+// Session configuration
+app.use(session({
+  store: new PgSession({
+    pool: pool,
+    tableName: 'user_sessions'
+  }),
+  secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
+
+// Static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Create table if it doesn't exist yet
-async function initDb() {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS support_requests (
-      id SERIAL PRIMARY KEY,
-      requester TEXT NOT NULL,
-      channel TEXT NOT NULL,
-      description TEXT,
-      status TEXT NOT NULL,
-      request_date DATE NOT NULL,
-      created_at TIMESTAMPTZ DEFAULT NOW()
-    );
-  `);
-  console.log('✅ Database initialised (support_requests table ready)');
-}
+// Routes
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/requests', require('./routes/requests'));
+app.use('/api/dashboard', require('./routes/dashboard'));
+app.use('/api/kb', require('./routes/kb'));
+app.use('/api/admin', require('./routes/admin'));
 
-// API: get all requests (latest first)
-app.get('/api/requests', async (req, res) => {
-  try {
-    const result = await pool.query(
-      'SELECT * FROM support_requests ORDER BY created_at DESC'
-    );
-    res.json(result.rows);
-  } catch (err) {
-    console.error('Error fetching requests:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// API: add a new request
-app.post('/api/requests', async (req, res) => {
-  try {
-    const { requester, channel, description, status, request_date } = req.body;
-
-    if (!requester) {
-      return res.status(400).json({ error: 'Requester is required' });
-    }
-
-    const dateToUse = request_date || new Date().toISOString().slice(0, 10);
-    const statusToUse = status || 'Open';
-    const channelToUse = channel || 'Teams Chat';
-
-    const result = await pool.query(
-      `INSERT INTO support_requests
-        (requester, channel, description, status, request_date)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING *`,
-      [
-        requester,
-        channelToUse,
-        description || '',
-        statusToUse,
-        dateToUse
-      ]
-    );
-
-    res.status(201).json(result.rows[0]);
-  } catch (err) {
-    console.error('Error inserting request:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Root route: serve index.html
+// Frontend routes
 app.get('/', (req, res) => {
+  if (!req.session.userId) {
+    return res.redirect('/login');
+  }
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Start server after DB is ready
-initDb()
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on http://localhost:${PORT}`);
-    });
-  })
-  .catch(err => {
-    console.error('Failed to initialise DB:', err);
-    process.exit(1);
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+app.get('/admin', (req, res) => {
+  if (!req.session.userId || req.session.role !== 'admin') {
+    return res.redirect('/login');
+  }
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// Error handling
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something went wrong!' });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
+});
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+// Graceful shutdown
+process.on('SIGINT', () => {
+  console.log('Shutting down gracefully...');
+  pool.end(() => {
+    console.log('Database connection closed.');
+    process.exit(0);
   });
+});
+
+module.exports = { pool };

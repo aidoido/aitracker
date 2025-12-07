@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - MS Teams Support Tracker</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .admin-nav {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 20px;
+        }
+
+        .admin-tab {
+            background: none;
+            border: none;
+            padding: 12px 24px;
+            margin-right: 5px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .admin-tab.active {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .admin-tab:hover:not(.active) {
+            background-color: #ecf0f1;
+        }
+
+        .admin-section {
+            display: none;
+        }
+
+        .admin-section.active {
+            display: block;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .settings-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .settings-card h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            margin-right: 10px;
+            width: auto;
+        }
+
+        .users-table {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .users-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .users-table th,
+        .users-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .users-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .role-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .role-admin {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .role-agent {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .role-viewer {
+            background-color: #95a5a6;
+            color: white;
+        }
+
+        .modal.large {
+            max-width: 600px;
+        }
+
+        .user-form .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .user-form .form-group {
+            flex: 1;
+        }
+
+        .success-message,
+        .error-message {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success-message {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .error-message {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .actions-column {
+            width: 120px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+
+        .btn-edit {
+            background-color: #f39c12;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+        .btn-delete {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container admin-container">
+        <a href="/" class="back-link">&larr; Back to Dashboard</a>
+
+        <header style="margin-bottom: 30px;">
+            <h1>Admin Panel</h1>
+            <p>Manage AI settings and users</p>
+        </header>
+
+        <nav class="admin-nav">
+            <button id="ai-settings-tab" class="admin-tab active">AI Settings</button>
+            <button id="users-tab" class="admin-tab">User Management</button>
+        </nav>
+
+        <!-- AI Settings Section -->
+        <div id="ai-settings-section" class="admin-section active">
+            <div id="settings-message" class="success-message"></div>
+
+            <div class="settings-grid">
+                <div class="settings-card">
+                    <h3>AI Provider Configuration</h3>
+                    <form id="ai-settings-form">
+                        <div class="form-group">
+                            <label for="provider">AI Provider</label>
+                            <select id="provider" name="provider">
+                                <option value="grok">Grok (xAI)</option>
+                                <option value="openrouter">OpenRouter</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="api-key">API Key</label>
+                            <input type="password" id="api-key" name="api_key" placeholder="Enter API key">
+                            <small style="color: #7f8c8d;">API key is stored securely and encrypted</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="model-name">Model Name</label>
+                            <input type="text" id="model-name" name="model_name" placeholder="e.g., grok-beta">
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="temperature">Temperature</label>
+                                <input type="number" id="temperature" name="temperature" min="0" max="2" step="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label for="max-tokens">Max Tokens</label>
+                                <input type="number" id="max-tokens" name="max_tokens" min="1">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="settings-card">
+                    <h3>AI Features</h3>
+                    <form id="ai-features-form">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="categorization-enabled" name="categorization_enabled">
+                            <label for="categorization-enabled">Auto-categorization of requests</label>
+                        </div>
+
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="replies-enabled" name="replies_enabled">
+                            <label for="replies-enabled">AI-generated replies</label>
+                        </div>
+
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="summaries-enabled" name="summaries_enabled">
+                            <label for="summaries-enabled">Daily summary generation</label>
+                        </div>
+
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="kb-enabled" name="kb_enabled">
+                            <label for="kb-enabled">Knowledge base AI improvements</label>
+                        </div>
+
+                        <button type="submit" class="btn-primary" style="margin-top: 20px;">Save AI Settings</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Management Section -->
+        <div id="users-section" class="admin-section">
+            <div class="section-header" style="margin-bottom: 20px;">
+                <h2>Users</h2>
+                <button id="add-user-btn" class="btn-primary">Add User</button>
+            </div>
+
+            <div id="users-message" class="success-message"></div>
+
+            <div class="users-table">
+                <table id="users-table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Created</th>
+                            <th class="actions-column">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-tbody">
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 40px;">Loading users...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit User Modal -->
+    <div id="user-modal" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3 id="user-modal-title">Add User</h3>
+                <span class="modal-close">&times;</span>
+            </div>
+            <form id="user-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="user-username">Username *</label>
+                        <input type="text" id="user-username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="user-email">Email *</label>
+                        <input type="email" id="user-email" name="email" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="user-password">Password *</label>
+                        <input type="password" id="user-password" name="password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="user-role">Role *</label>
+                        <select id="user-role" name="role" required>
+                            <option value="">Select Role</option>
+                            <option value="admin">Admin</option>
+                            <option value="agent">Agent</option>
+                            <option value="viewer">Viewer</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentUserId = null;
+
+        // Tab switching
+        document.getElementById('ai-settings-tab').addEventListener('click', () => switchAdminTab('ai-settings'));
+        document.getElementById('users-tab').addEventListener('click', () => switchAdminTab('users'));
+
+        function switchAdminTab(tabName) {
+            document.querySelectorAll('.admin-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.admin-section').forEach(section => section.classList.remove('active'));
+
+            document.getElementById(tabName + '-tab').classList.add('active');
+            document.getElementById(tabName + '-section').classList.add('active');
+
+            if (tabName === 'ai-settings') {
+                loadAISettings();
+            } else if (tabName === 'users') {
+                loadUsers();
+            }
+        }
+
+        // AI Settings
+        async function loadAISettings() {
+            try {
+                const response = await fetch('/api/admin/ai-settings');
+                const settings = await response.json();
+
+                document.getElementById('provider').value = settings.provider || 'grok';
+                document.getElementById('model-name').value = settings.model_name || '';
+                document.getElementById('temperature').value = settings.temperature || 0.7;
+                document.getElementById('max-tokens').value = settings.max_tokens || 1000;
+
+                document.getElementById('categorization-enabled').checked = settings.categorization_enabled;
+                document.getElementById('replies-enabled').checked = settings.replies_enabled;
+                document.getElementById('summaries-enabled').checked = settings.summaries_enabled;
+                document.getElementById('kb-enabled').checked = settings.kb_enabled;
+            } catch (error) {
+                console.error('Failed to load AI settings:', error);
+                showSettingsMessage('Failed to load AI settings', 'error');
+            }
+        }
+
+        document.getElementById('ai-features-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(document.getElementById('ai-settings-form'));
+            const featuresData = new FormData(e.target);
+
+            const settingsData = {
+                provider: formData.get('provider'),
+                api_key: formData.get('api_key'),
+                model_name: formData.get('model_name'),
+                temperature: parseFloat(formData.get('temperature')),
+                max_tokens: parseInt(formData.get('max_tokens')),
+                categorization_enabled: document.getElementById('categorization-enabled').checked,
+                replies_enabled: document.getElementById('replies-enabled').checked,
+                summaries_enabled: document.getElementById('summaries-enabled').checked,
+                kb_enabled: document.getElementById('kb-enabled').checked
+            };
+
+            try {
+                const response = await fetch('/api/admin/ai-settings', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(settingsData)
+                });
+
+                if (response.ok) {
+                    showSettingsMessage('AI settings saved successfully', 'success');
+                    // Clear API key field for security
+                    document.getElementById('api-key').value = '';
+                } else {
+                    const error = await response.json();
+                    showSettingsMessage(error.error || 'Failed to save AI settings', 'error');
+                }
+            } catch (error) {
+                console.error('Failed to save AI settings:', error);
+                showSettingsMessage('Failed to save AI settings', 'error');
+            }
+        });
+
+        function showSettingsMessage(message, type) {
+            const messageDiv = document.getElementById('settings-message');
+            messageDiv.textContent = message;
+            messageDiv.className = type + '-message';
+            messageDiv.style.display = 'block';
+
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // User Management
+        async function loadUsers() {
+            try {
+                const response = await fetch('/api/admin/users');
+                const users = await response.json();
+
+                renderUsers(users);
+            } catch (error) {
+                console.error('Failed to load users:', error);
+                document.getElementById('users-tbody').innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Failed to load users</td></tr>';
+            }
+        }
+
+        function renderUsers(users) {
+            if (!users || users.length === 0) {
+                document.getElementById('users-tbody').innerHTML = '<tr><td colspan="5" style="text-align: center;">No users found</td></tr>';
+                return;
+            }
+
+            document.getElementById('users-tbody').innerHTML = users.map(user => `
+                <tr>
+                    <td>${user.username}</td>
+                    <td>${user.email}</td>
+                    <td><span class="role-badge role-${user.role}">${user.role}</span></td>
+                    <td>${new Date(user.created_at).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn-small btn-edit" onclick="editUser(${user.id})">Edit</button>
+                        <button class="btn-small btn-delete" onclick="deleteUser(${user.id}, '${user.username}')">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        document.getElementById('add-user-btn').addEventListener('click', () => openUserModal());
+
+        function openUserModal(userId = null) {
+            currentUserId = userId;
+            document.getElementById('user-modal-title').textContent = userId ? 'Edit User' : 'Add User';
+
+            if (userId) {
+                // Load user data for editing
+                loadUserForEdit(userId);
+            } else {
+                document.getElementById('user-form').reset();
+                document.getElementById('user-password').required = true;
+            }
+
+            document.getElementById('user-modal').style.display = 'block';
+        }
+
+        async function loadUserForEdit(userId) {
+            try {
+                // This would need a GET endpoint for single user
+                // For now, we'll implement it differently
+                const response = await fetch('/api/admin/users');
+                const users = await response.json();
+                const user = users.find(u => u.id == userId);
+
+                if (user) {
+                    document.getElementById('user-username').value = user.username;
+                    document.getElementById('user-email').value = user.email;
+                    document.getElementById('user-role').value = user.role;
+                    document.getElementById('user-password').required = false;
+                    document.getElementById('user-password').placeholder = 'Leave blank to keep current password';
+                }
+            } catch (error) {
+                console.error('Failed to load user for edit:', error);
+            }
+        }
+
+        function editUser(userId) {
+            openUserModal(userId);
+        }
+
+        async function deleteUser(userId, username) {
+            if (!confirm(`Are you sure you want to delete user "${username}"?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/users/${userId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showUsersMessage('User deleted successfully', 'success');
+                    loadUsers();
+                } else {
+                    const error = await response.json();
+                    showUsersMessage(error.error || 'Failed to delete user', 'error');
+                }
+            } catch (error) {
+                console.error('Failed to delete user:', error);
+                showUsersMessage('Failed to delete user', 'error');
+            }
+        }
+
+        document.getElementById('user-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const userData = {
+                username: formData.get('username'),
+                email: formData.get('email'),
+                password: formData.get('password'),
+                role: formData.get('role')
+            };
+
+            const method = currentUserId ? 'PUT' : 'POST';
+            const url = currentUserId ? `/api/admin/users/${currentUserId}` : '/api/admin/users';
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+
+                if (response.ok) {
+                    closeModal();
+                    showUsersMessage(`User ${currentUserId ? 'updated' : 'created'} successfully`, 'success');
+                    loadUsers();
+                } else {
+                    const error = await response.json();
+                    showUsersMessage(error.error || `Failed to ${currentUserId ? 'update' : 'create'} user`, 'error');
+                }
+            } catch (error) {
+                console.error(`Failed to ${currentUserId ? 'update' : 'create'} user:`, error);
+                showUsersMessage(`Failed to ${currentUserId ? 'update' : 'create'} user`, 'error');
+            }
+        });
+
+        function showUsersMessage(message, type) {
+            const messageDiv = document.getElementById('users-message');
+            messageDiv.textContent = message;
+            messageDiv.className = type + '-message';
+            messageDiv.style.display = 'block';
+
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Modal close
+        document.querySelectorAll('.modal-close').forEach(closeBtn => {
+            closeBtn.addEventListener('click', closeModal);
+        });
+
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal();
+            });
+        });
+
+        function closeModal() {
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.style.display = 'none';
+            });
+            currentUserId = null;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAISettings();
+        });
+    </script>
+</body>
+</html>
