@@ -9,50 +9,61 @@ router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    console.log('Login attempt for:', username);
+    console.log('=== LOGIN ATTEMPT ===');
+    console.log('Username:', username);
+    console.log('Password provided:', !!password);
 
     if (!username || !password) {
+      console.log('Missing credentials');
       return res.status(400).json({ error: 'Username and password are required' });
     }
 
     // Test database connection
     try {
-      await pool.query('SELECT 1');
-      console.log('Database connection OK');
+      const testResult = await pool.query('SELECT COUNT(*) as count FROM users');
+      console.log('Database OK, total users:', testResult.rows[0].count);
     } catch (dbError) {
-      console.error('Database connection failed:', dbError);
-      return res.status(500).json({ error: 'Database connection failed' });
+      console.error('Database connection failed:', dbError.message);
+      return res.status(500).json({ error: 'Database connection failed', details: dbError.message });
     }
 
     // Get user from database
+    console.log('Looking up user:', username);
     const result = await pool.query(
       'SELECT id, username, email, password_hash, role FROM users WHERE username = $1',
       [username]
     );
 
-    console.log('User lookup result:', result.rows.length > 0 ? 'User found' : 'User not found');
+    console.log('Query result rows:', result.rows.length);
 
     if (result.rows.length === 0) {
+      console.log('User not found');
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     const user = result.rows[0];
-    console.log('User found:', user.username, 'Role:', user.role);
+    console.log('User found:', { id: user.id, username: user.username, role: user.role });
 
     // Check password
+    console.log('Checking password...');
     const isValidPassword = await bcrypt.compare(password, user.password_hash);
-    console.log('Password check result:', isValidPassword);
+    console.log('Password valid:', isValidPassword);
 
     if (!isValidPassword) {
+      console.log('Invalid password');
       return res.status(401).json({ error: 'Invalid credentials' });
     }
+
+    console.log('Password correct, setting session...');
 
     // Set session
     req.session.userId = user.id;
     req.session.username = user.username;
     req.session.role = user.role;
 
-    console.log('Login successful for:', user.username);
+    console.log('Session set:', { userId: req.session.userId, username: req.session.username });
+
+    console.log('Login successful!');
 
     res.json({
       user: {
@@ -63,8 +74,14 @@ router.post('/login', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ error: 'Internal server error', details: error.message });
+    console.error('=== LOGIN ERROR ===');
+    console.error('Error:', error.message);
+    console.error('Stack:', error.stack);
+    res.status(500).json({
+      error: 'Internal server error',
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
