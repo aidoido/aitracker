@@ -14,7 +14,21 @@ const PORT = process.env.PORT || 3000;
 const { Pool } = require('pg');
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  connectionTimeoutMillis: 10000, // 10 second timeout
+  query_timeout: 10000,
+  statement_timeout: 10000,
+  idle_in_transaction_session_timeout: 10000
+});
+
+// Test database connection on startup
+pool.on('connect', () => {
+  console.log('✅ Connected to PostgreSQL database');
+});
+
+pool.on('error', (err) => {
+  console.error('❌ Unexpected error on idle client:', err);
+  process.exit(-1);
 });
 
 // Middleware
