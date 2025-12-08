@@ -95,6 +95,37 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
+// Test database connection endpoint
+app.get('/api/test-db', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT COUNT(*) as user_count FROM users');
+    const userCount = result.rows[0].user_count;
+
+    res.json({
+      status: 'Database connected successfully',
+      user_count: userCount,
+      database_url: process.env.DATABASE_URL ? 'Set' : 'Not set'
+    });
+  } catch (error) {
+    console.error('Database test error:', error);
+    res.status(500).json({
+      status: 'Database connection failed',
+      error: error.message,
+      database_url: process.env.DATABASE_URL ? 'Set' : 'Not set'
+    });
+  }
+});
+
+// Test session endpoint
+app.get('/api/test-session', (req, res) => {
+  req.session.test = 'working';
+  res.json({
+    status: 'Session working',
+    session_id: req.session.id,
+    test_value: req.session.test
+  });
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
