@@ -478,9 +478,22 @@
                 });
 
                 if (response.ok) {
-                    showSettingsMessage('AI settings saved successfully', 'success');
-                    // Clear API key field for security
-                    document.getElementById('api-key').value = '';
+                    showSettingsMessage('AI settings saved successfully! API key configured.', 'success');
+                    // Show confirmation that API key was saved
+                    const apiKeyField = document.getElementById('api-key');
+                    if (apiKeyField.value) {
+                        // Show last 4 characters as confirmation
+                        const masked = '•'.repeat(Math.max(0, apiKeyField.value.length - 4)) + apiKeyField.value.slice(-4);
+                        showSettingsMessage(`API key saved: ...${masked}`, 'success');
+                        // Clear after showing confirmation
+                        setTimeout(() => {
+                            apiKeyField.value = '';
+                        }, 2000);
+                    }
+                    // Reload settings to verify they were saved
+                    setTimeout(() => {
+                        loadAISettings();
+                    }, 1000);
                 } else {
                     const error = await response.json();
                     showSettingsMessage(error.error || 'Failed to save AI settings', 'error');
