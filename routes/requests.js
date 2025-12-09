@@ -117,7 +117,7 @@ router.post('/', requireAgent, async (req, res) => {
 router.put('/:id', requireAgent, async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, solution, is_kb_article, requester_name, channel, description } = req.body;
+    const { status, solution, is_kb_article, requester_name, channel, description, severity } = req.body;
 
     const updates = [];
     const params = [id];
@@ -151,6 +151,11 @@ router.put('/:id', requireAgent, async (req, res) => {
     if (description) {
       updates.push(`description = $${++paramCount}`);
       params.push(description);
+    }
+
+    if (severity) {
+      updates.push(`severity = $${++paramCount}`);
+      params.push(severity);
     }
 
     if (status === 'closed') {
@@ -192,6 +197,75 @@ router.put('/:id', requireAgent, async (req, res) => {
   } catch (error) {
     console.error('Error updating request:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Recategorize request with AI
+router.post('/:id/recategorize', requireAgent, async (req, res) => {
+  console.log('=== AI RECATEGORIZE REQUEST ===');
+  console.log('Request ID:', req.params.id);
+
+  try {
+    const { id } = req.params;
+
+    // Get current request
+    const requestResult = await pool.query('SELECT * FROM support_requests WHERE id = $1', [id]);
+    if (requestResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Request not found' });
+    }
+
+    const request = requestResult.rows[0];
+    console.log('Recategorizing request:', request.description.substring(0, 100) + '...');
+
+    // Run AI categorization
+    const categorization = await aiService.categorizeRequest(request.description);
+    console.log('AI categorization result:', categorization);
+
+    // Update request with new categorization
+    const updates = [];
+    const params = [id];
+    let paramCount = 1;
+
+    if (categorization.category) {
+      // Find category ID
+      const categoryResult = await pool.query('SELECT id FROM categories WHERE name = $1', [categorization.category]);
+      if (categoryResult.rows.length > 0) {
+        updates.push(`category_id = $${++paramCount}`);
+        params.push(categoryResult.rows[0].id);
+      }
+    }
+
+    if (categorization.severity) {
+      updates.push(`severity = $${++paramCount}`);
+      params.push(categorization.severity);
+    }
+
+    if (categorization.recommendation) {
+      updates.push(`ai_recommendation = $${++paramCount}`);
+      params.push(categorization.recommendation);
+    }
+
+    updates.push(`updated_at = CURRENT_TIMESTAMP`);
+
+    if (updates.length > 0) {
+      const query = `UPDATE support_requests SET ${updates.join(', ')} WHERE id = $1 RETURNING *`;
+      const result = await pool.query(query, params);
+      console.log('Request updated with new categorization');
+    }
+
+    res.json({
+      success: true,
+      categorization: categorization
+    });
+
+  } catch (error) {
+    console.error('=== AI RECATEGORIZE ERROR ===');
+    console.error('Error:', error.message);
+
+    res.status(500).json({
+      error: 'Failed to recategorize request',
+      details: error.message
+    });
   }
 });
 

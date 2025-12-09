@@ -824,7 +824,13 @@ function enterEditMode(request) {
             </div>
             <div class="detail-section">
                 <div class="detail-label">Severity:</div>
-                <div class="detail-value">${request.severity}</div>
+                <div class="detail-value">
+                    <select id="edit-severity" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="low" ${request.severity === 'low' ? 'selected' : ''}>Low</option>
+                        <option value="medium" ${request.severity === 'medium' ? 'selected' : ''}>Medium</option>
+                        <option value="high" ${request.severity === 'high' ? 'selected' : ''}>High</option>
+                    </select>
+                </div>
             </div>
             <div class="detail-section">
                 <div class="detail-label">Status:</div>
@@ -864,6 +870,7 @@ function enterEditMode(request) {
             <div class="action-buttons">
                 <button class="btn-primary" onclick="generateAIReply(${request.id})">Generate AI Reply</button>
                 ${currentUser.role !== 'viewer' ? `
+                    <button class="btn-secondary" onclick="recategorizeRequest(${request.id})">AI Recategorize</button>
                     <button class="btn-secondary" onclick="editRequestSolution(${request.id})">Add/Edit Solution</button>
                     <button class="btn-secondary" onclick="createKbFromRequest(${request.id})">Create KB Article</button>
                 ` : ''}
@@ -879,6 +886,7 @@ async function saveRequestChanges(requestId) {
     const requesterName = document.getElementById('edit-requester-name').value;
     const channel = document.getElementById('edit-channel').value;
     const description = document.getElementById('edit-description').value;
+    const severity = document.getElementById('edit-severity').value;
 
     try {
         const response = await fetch(`/api/requests/${requestId}`, {
@@ -887,7 +895,8 @@ async function saveRequestChanges(requestId) {
             body: JSON.stringify({
                 requester_name: requesterName,
                 channel: channel,
-                description: description
+                description: description,
+                severity: severity
             })
         });
 
@@ -902,6 +911,31 @@ async function saveRequestChanges(requestId) {
     } catch (error) {
         console.error('Failed to update request:', error);
         showError('Failed to update request');
+    }
+}
+
+// Recategorize request with AI
+async function recategorizeRequest(requestId) {
+    try {
+        showSuccess('Recategorizing request with AI...');
+
+        const response = await fetch(`/api/requests/${requestId}/recategorize`, {
+            method: 'POST'
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            showSuccess('Request recategorized successfully!');
+
+            // Refresh the request details to show new categorization
+            setTimeout(() => openRequestDetail(requestId), 1000);
+        } else {
+            const error = await response.json();
+            showError(error.details || error.error || 'Failed to recategorize request');
+        }
+    } catch (error) {
+        console.error('Failed to recategorize request:', error);
+        showError('Network error: Unable to recategorize request');
     }
 }
 
@@ -920,6 +954,7 @@ function copyToClipboard(text) {
 window.openRequestDetail = openRequestDetail;
 window.updateRequestStatus = updateRequestStatus;
 window.generateAIReply = generateAIReply;
+window.recategorizeRequest = recategorizeRequest;
 window.editRequestSolution = editRequestSolution;
 window.createKbFromRequest = createKbFromRequest;
 window.openKbDetail = openKbDetail;
