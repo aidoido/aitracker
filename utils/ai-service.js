@@ -16,11 +16,19 @@ class AIService {
   async makeAIRequest(prompt, maxTokens = 1000) {
     const settings = await this.getSettings();
 
+    console.log('AI Settings loaded:', {
+      hasApiKey: !!settings.api_key_encrypted,
+      provider: settings.provider,
+      model: settings.model_name,
+      categorizationEnabled: settings.categorization_enabled,
+      repliesEnabled: settings.replies_enabled
+    });
+
     if (!settings.api_key_encrypted) {
-      throw new Error('AI API key not configured');
+      throw new Error('AI API key not configured. Please configure your Grok API key in Admin → AI Settings');
     }
 
-    // For now, we'll assume the API key is stored encrypted
+    // For now, we'll assume the API key is stored as-is (not encrypted for simplicity)
     // In production, you'd decrypt it here
     const apiKey = settings.api_key_encrypted;
 
@@ -77,9 +85,17 @@ Respond with only valid JSON, no other text.`;
   }
 
   async generateReply(request) {
+    console.log('Generating AI reply for request:', request.id);
+
     const settings = await this.getSettings();
+    console.log('AI reply settings:', {
+      replies_enabled: settings.replies_enabled,
+      model_name: settings.model_name,
+      temperature: settings.temperature
+    });
+
     if (!settings.replies_enabled) {
-      throw new Error('AI replies are disabled');
+      throw new Error('AI replies are disabled. Enable them in Admin → AI Settings');
     }
 
     const prompt = `Generate a professional, polite response for this Microsoft Teams support request. The response should be:
@@ -99,12 +115,15 @@ ${request.ai_recommendation ? `- Internal note: ${request.ai_recommendation}` : 
 
 Generate only the response text, no quotes or additional formatting.`;
 
+    console.log('AI prompt created, making request...');
+
     try {
       const reply = await this.makeAIRequest(prompt, 500);
+      console.log('AI reply generated successfully, length:', reply.length);
       return reply.trim();
     } catch (error) {
-      console.error('AI reply generation error:', error);
-      throw new Error('Failed to generate AI reply');
+      console.error('AI reply generation error:', error.message);
+      throw error; // Re-throw to preserve original error
     }
   }
 
