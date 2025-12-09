@@ -8,18 +8,21 @@ const path = require('path');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080; // Railway uses 8080
 
-// Database connection
+// Database connection - Initialize FIRST
 const { Pool } = require('pg');
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-  connectionTimeoutMillis: 10000, // 10 second timeout
+  connectionTimeoutMillis: 10000,
   query_timeout: 10000,
   statement_timeout: 10000,
   idle_in_transaction_session_timeout: 10000
 });
+
+// Export pool immediately after creation
+module.exports = { pool };
 
 // Test database connection on startup
 pool.on('connect', () => {
@@ -28,7 +31,6 @@ pool.on('connect', () => {
 
 pool.on('error', (err) => {
   console.error('❌ Unexpected error on idle client:', err);
-  process.exit(-1);
 });
 
 // Middleware
@@ -36,8 +38,8 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"], // Allow inline styles
-      scriptSrc: ["'self'", "'unsafe-inline'"], // Allow inline scripts for now
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", "data:", "https:"],
       connectSrc: ["'self'"],
       fontSrc: ["'self'"],
@@ -53,8 +55,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 100
 });
 app.use(limiter);
 
@@ -70,14 +72,14 @@ app.use(session({
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    maxAge: 24 * 60 * 60 * 1000
   }
 }));
 
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Routes
+// Routes - Load AFTER pool is initialized
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/requests', require('./routes/requests'));
 app.use('/api/dashboard', require('./routes/dashboard'));
