@@ -553,11 +553,21 @@ async function loadCategories() {
 
 // Load categories for edit mode
 async function loadEditCategories(selectedCategoryId) {
+    console.log('Loading edit categories for selected ID:', selectedCategoryId);
     try {
         const response = await fetch('/api/dashboard/categories');
+        console.log('Categories API response status:', response.status);
         const categories = await response.json();
+        console.log('Loaded categories:', categories);
 
         const categorySelect = document.getElementById('edit-category');
+        console.log('Category select element found:', !!categorySelect);
+
+        if (!categorySelect) {
+            console.error('edit-category element not found!');
+            return;
+        }
+
         categorySelect.innerHTML = '<option value="">Select Category</option>';
 
         categories.forEach(category => {
@@ -566,13 +576,18 @@ async function loadEditCategories(selectedCategoryId) {
             option.textContent = category.name;
             if (category.id == selectedCategoryId) {
                 option.selected = true;
+                console.log('Selected category:', category.name);
             }
             categorySelect.appendChild(option);
         });
+
+        console.log('Edit categories loaded successfully');
     } catch (error) {
         console.error('Failed to load edit categories:', error);
         const categorySelect = document.getElementById('edit-category');
-        categorySelect.innerHTML = '<option value="">Error loading categories</option>';
+        if (categorySelect) {
+            categorySelect.innerHTML = '<option value="">Error loading categories</option>';
+        }
     }
 }
 
@@ -841,6 +856,7 @@ function toggleEditMode(request) {
 
 // Enter edit mode
 async function enterEditMode(request) {
+    console.log('Entering edit mode for request:', request.id, 'category:', request.category_id);
     const contentDiv = document.getElementById('request-detail-content');
     const editBtn = document.getElementById('edit-request-btn');
 
@@ -933,6 +949,9 @@ async function enterEditMode(request) {
     `;
 
     contentDiv.innerHTML = editableContent;
+
+    // Small delay to ensure DOM is updated
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     // Load categories for the dropdown
     await loadEditCategories(request.category_id);
