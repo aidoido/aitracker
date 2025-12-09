@@ -105,10 +105,18 @@ app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
-// Error handling
+// Error handling - Prevent headers already sent errors
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
+  console.error('Error:', err.message);
+  console.error('Stack:', err.stack);
+
+  // Only send response if headers haven't been sent
+  if (!res.headersSent) {
+    res.status(500).json({
+      error: 'Something went wrong!',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
 });
 
 // Test database connection endpoint

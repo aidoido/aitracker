@@ -24,7 +24,7 @@ const createTables = async () => {
     // User sessions table (for connect-pg-simple)
     await pool.query(`
       CREATE TABLE IF NOT EXISTS user_sessions (
-        sid VARCHAR NOT NULL COLLATE "default",
+        sid VARCHAR PRIMARY KEY COLLATE "default",
         sess JSON NOT NULL,
         expire TIMESTAMP(6) NOT NULL
       );
