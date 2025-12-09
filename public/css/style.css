@@ -887,38 +887,102 @@ body {
     border: 1px solid #c3e6cb;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .container {
-        padding: 10px;
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .sidebar {
+        width: 240px;
     }
 
-    header {
-        flex-direction: column;
-        gap: 15px;
-        text-align: center;
+    .main-content {
+        margin-left: 240px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+
+    .top-header {
+        padding: var(--space-4) var(--space-6);
+    }
+
+    .page-title {
+        font-size: 20px;
+    }
+
+    .search-box {
+        width: 250px;
     }
 
     .metrics-grid {
         grid-template-columns: 1fr;
-    }
-
-    .section-header {
-        flex-direction: column;
-        gap: 15px;
-        text-align: center;
+        gap: var(--space-4);
     }
 
     .filters {
         flex-direction: column;
+        align-items: stretch;
+        gap: var(--space-4);
     }
 
-    .form-actions {
-        flex-direction: column;
+    .filter-group input,
+    .filter-group select {
+        min-width: auto;
     }
 
-    .action-buttons {
+    .header-actions {
         flex-direction: column;
+        align-items: stretch;
+    }
+
+    .modal-content {
+        margin: var(--space-4);
+        width: calc(100% - 2 * var(--space-4));
+        max-height: calc(100vh - 2 * var(--space-4));
+    }
+}
+
+@media (max-width: 480px) {
+    .top-header {
+        flex-direction: column;
+        gap: var(--space-4);
+        align-items: stretch;
+    }
+
+    .header-left,
+    .header-right {
+        justify-content: center;
+    }
+
+    .search-box {
+        width: 100%;
+    }
+
+    .user-avatar {
+        margin-left: auto;
+    }
+
+    .metric-card {
+        padding: var(--space-4);
+    }
+
+    .metric-value {
+        font-size: 24px;
+    }
+
+    .modal-header,
+    .modal-body {
+        padding: var(--space-4) var(--space-6);
     }
 }
 

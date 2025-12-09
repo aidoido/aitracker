@@ -425,7 +425,7 @@ function renderRequests(requests) {
                     <span>${request.created_by_username}</span>
                     <span>•</span>
                     <span>${request.channel}</span>
-                </div>
+            </div>
             </div>
             <div class="request-status status-${request.status}">${request.status.replace('_', ' ')}</div>
         </div>
@@ -522,7 +522,7 @@ async function openRequestDetail(requestId) {
         }
 
         contentElement.innerHTML = content;
-        modalElement.style.display = 'block';
+        modalElement.classList.add('show');
         console.log('Modal opened successfully');
 
     // Set up edit button
@@ -564,7 +564,7 @@ async function generateAIReply(requestId) {
             method: 'POST'
         });
 
-        const data = await response.json();
+            const data = await response.json();
 
         if (response.ok) {
             // Copy to clipboard
@@ -628,7 +628,7 @@ async function exportToCsv() {
 async function openRequestModal() {
     elements.requestForm.reset();
     await loadCategories();
-    elements.requestModal.style.display = 'block';
+    elements.requestModal.classList.add('show');
 }
 
 // Load categories for the dropdown
@@ -760,7 +760,7 @@ function renderKbArticles(articles) {
                     <span>•</span>
                     <span>${new Date(article.updated_at).toLocaleDateString()}</span>
                     ${article.category_name ? `<span>•</span><span>${article.category_name}</span>` : ''}
-                </div>
+            </div>
             </div>
         </div>
     `).join('');
@@ -779,7 +779,7 @@ function openKbModal(articleId = null) {
         loadKbCategories();
     }
 
-    elements.kbModal.style.display = 'block';
+    elements.kbModal.classList.add('show');
 }
 
 async function loadKbCategories() {
@@ -830,7 +830,7 @@ async function handleKbSubmit(e) {
 // Utility functions
 function closeModal() {
     document.querySelectorAll('.modal').forEach(modal => {
-        modal.style.display = 'none';
+        modal.classList.remove('show');
     });
 }
 

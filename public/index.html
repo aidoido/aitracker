@@ -5,24 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MS Teams Support Tracker</title>
     <link rel="stylesheet" href="/css/style.css">
-    <!-- Chart.js removed due to CSP issues - will implement simple CSS charts later -->
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>MS Teams Support Tracker</h1>
-            <div class="user-info">
-                <span id="user-greeting"></span>
-                <button id="logout-btn" class="btn-secondary">Logout</button>
-                <button id="admin-btn" class="btn-secondary" style="display: none;">Admin</button>
-            </div>
-        </header>
-
-        <nav>
-            <button id="dashboard-tab" class="tab active">Dashboard</button>
-            <button id="requests-tab" class="tab">Requests</button>
-            <button id="kb-tab" class="tab">Knowledge Base</button>
-        </nav>
+    <div class="app-layout">
 
         <!-- Sidebar -->
         <aside class="sidebar">
