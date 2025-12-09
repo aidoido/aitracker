@@ -210,6 +210,13 @@ function renderChart(data) {
     const ctx = document.getElementById('requestsChart');
     if (!ctx) return;
 
+    // Check if Chart.js is available
+    if (typeof Chart === 'undefined') {
+        console.log('Chart.js not loaded, rendering simple chart');
+        renderSimpleChart(ctx, data);
+        return;
+    }
+
     const labels = data.map(item => new Date(item.date).toLocaleDateString());
     const values = data.map(item => item.count);
 
@@ -245,6 +252,27 @@ function renderChart(data) {
             }
         }
     });
+}
+
+// Simple CSS-based chart as fallback
+function renderSimpleChart(canvas, data) {
+    const container = canvas.parentElement;
+    container.innerHTML = `
+        <div style="padding: 20px; background: #f8f9fa; border-radius: 8px; text-align: center;">
+            <h4>Request Trends (Last 7 Days)</h4>
+            <div style="display: flex; justify-content: space-around; margin-top: 20px; flex-wrap: wrap;">
+                ${data.slice(-7).map(item => `
+                    <div style="text-align: center; margin: 5px;">
+                        <div style="height: ${Math.max(item.count * 15, 30)}px; width: 40px; background: #3498db; margin: 0 auto 8px; border-radius: 4px; display: flex; align-items: end; justify-content: center; color: white; font-weight: bold; font-size: 12px;">
+                            ${item.count}
+                        </div>
+                        <div style="font-size: 11px; color: #666;">${new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
+                    </div>
+                `).join('')}
+            </div>
+            <p style="margin-top: 15px; font-size: 12px; color: #666;">Simple chart (Chart.js not loaded due to CSP)</p>
+        </div>
+    `;
 }
 
 function renderRecentRequests(requests) {
