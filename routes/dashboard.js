@@ -40,22 +40,10 @@ router.get('/metrics', async (req, res) => {
       statusCounts[row.status] = parseInt(row.count);
     });
 
-    // Recent requests (last 10)
-    const recentResult = await pool.query(`
-      SELECT sr.id, sr.requester_name, sr.description, sr.status, sr.created_at,
-             c.name as category_name, u.username as created_by_username
-      FROM support_requests sr
-      LEFT JOIN categories c ON sr.category_id = c.id
-      LEFT JOIN users u ON sr.created_by = u.id
-      ORDER BY sr.created_at DESC
-      LIMIT 10
-    `);
-
     res.json({
       total,
       todayCount,
-      statusCounts,
-      recentRequests: recentResult.rows
+      statusCounts
     });
   } catch (error) {
     console.error('Error fetching dashboard metrics:', error);

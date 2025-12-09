@@ -43,7 +43,6 @@ function cacheElements() {
     elements.todayRequests = document.getElementById('today-requests');
     elements.openRequests = document.getElementById('open-requests');
     elements.closedRequests = document.getElementById('closed-requests');
-    elements.recentRequestsList = document.getElementById('recent-requests-list');
 
     // Requests elements
     elements.newRequestBtn = document.getElementById('new-request-btn');
@@ -184,8 +183,6 @@ async function loadDashboard() {
         elements.todayRequests.textContent = data.todayCount;
         elements.openRequests.textContent = data.statusCounts.open;
         elements.closedRequests.textContent = data.statusCounts.closed;
-
-        renderRecentRequests(data.recentRequests);
         loadChartData();
     } catch (error) {
         console.error('Failed to load dashboard:', error);
@@ -378,23 +375,6 @@ function renderSimpleChart(canvas, data) {
     `;
 }
 
-function renderRecentRequests(requests) {
-    if (!requests || requests.length === 0) {
-        elements.recentRequestsList.innerHTML = '<p class="loading">No recent requests</p>';
-        return;
-    }
-
-    elements.recentRequestsList.innerHTML = requests.map(request => `
-        <div class="request-item" onclick="openRequestDetail(${request.id})">
-            <div class="request-header">
-                <div class="request-title">${request.requester_name}</div>
-                <div class="request-meta">${new Date(request.created_at).toLocaleDateString()}</div>
-            </div>
-            <div class="request-description">${truncateText(request.description, 100)}</div>
-            <span class="request-status status-${request.status}">${request.status.replace('_', ' ')}</span>
-        </div>
-    `).join('');
-}
 
 // Requests functions
 async function loadRequests() {
