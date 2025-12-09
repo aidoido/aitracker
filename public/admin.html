@@ -244,6 +244,7 @@
         <nav class="admin-nav">
             <button id="ai-settings-tab" class="admin-tab active">AI Settings</button>
             <button id="daily-summary-tab" class="admin-tab">Daily Summary</button>
+            <button id="categories-tab" class="admin-tab">Categories</button>
             <button id="users-tab" class="admin-tab">User Management</button>
         </nav>
 
@@ -337,6 +338,35 @@
             </div>
         </div>
 
+        <!-- Categories Management Section -->
+        <div id="categories-section" class="admin-section">
+            <div class="section-header">
+                <h2>Category Management</h2>
+                <button id="add-category-btn" class="btn-primary">Add Category</button>
+            </div>
+
+            <div id="categories-message" class="success-message"></div>
+
+            <div class="categories-table">
+                <table id="categories-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Request Count</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="categories-tbody">
+                        <tr>
+                            <td colspan="5" style="text-align: center;">Loading categories...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <!-- User Management Section -->
         <div id="users-section" class="admin-section">
             <div class="section-header" style="margin-bottom: 20px;">
@@ -415,6 +445,7 @@
 
         // Tab switching
         document.getElementById('ai-settings-tab').addEventListener('click', () => switchAdminTab('ai-settings'));
+        document.getElementById('categories-tab').addEventListener('click', () => switchAdminTab('categories'));
         document.getElementById('users-tab').addEventListener('click', () => switchAdminTab('users'));
 
         function switchAdminTab(tabName) {
@@ -426,6 +457,8 @@
 
             if (tabName === 'ai-settings') {
                 loadAISettings();
+            } else if (tabName === 'categories') {
+                loadCategories();
             } else if (tabName === 'users') {
                 loadUsers();
             }
@@ -713,6 +746,162 @@
                 alert('Summary copied to clipboard!');
             });
         });
+
+        // Category Management Functions
+        async function loadCategories() {
+            try {
+                const response = await fetch('/api/dashboard/categories');
+                const categories = await response.json();
+
+                renderCategories(categories);
+            } catch (error) {
+                console.error('Failed to load categories:', error);
+                document.getElementById('categories-tbody').innerHTML =
+                    '<tr><td colspan="5" style="text-align: center; color: red;">Failed to load categories</td></tr>';
+            }
+        }
+
+        function renderCategories(categories) {
+            if (!categories || categories.length === 0) {
+                document.getElementById('categories-tbody').innerHTML =
+                    '<tr><td colspan="5" style="text-align: center;">No categories found</td></tr>';
+                return;
+            }
+
+            document.getElementById('categories-tbody').innerHTML = categories.map(category => `
+                <tr>
+                    <td>${category.id}</td>
+                    <td>${category.name}</td>
+                    <td>${category.description || ''}</td>
+                    <td>${category.count || 0}</td>
+                    <td>
+                        <button class="btn-small btn-edit" onclick="editCategory(${category.id}, '${category.name.replace(/'/g, "\\'")}', '${(category.description || '').replace(/'/g, "\\'")}')">Edit</button>
+                        <button class="btn-small btn-delete" onclick="deleteCategory(${category.id}, '${category.name.replace(/'/g, "\\'")}')">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        document.getElementById('add-category-btn').addEventListener('click', () => {
+            openCategoryModal();
+        });
+
+        function openCategoryModal(categoryId = null, name = '', description = '') {
+            const modal = document.getElementById('category-modal') || createCategoryModal();
+            document.getElementById('category-modal-title').textContent = categoryId ? 'Edit Category' : 'Add Category';
+            document.getElementById('category-name').value = name;
+            document.getElementById('category-description').value = description;
+
+            window.currentCategoryId = categoryId;
+            modal.style.display = 'block';
+        }
+
+        function createCategoryModal() {
+            const modal = document.createElement('div');
+            modal.id = 'category-modal';
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content large">
+                    <div class="modal-header">
+                        <h3 id="category-modal-title">Add Category</h3>
+                        <span class="modal-close">&times;</span>
+                    </div>
+                    <form id="category-form">
+                        <div class="form-group">
+                            <label for="category-name">Category Name *</label>
+                            <input type="text" id="category-name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="category-description">Description</label>
+                            <textarea id="category-description" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                            <button type="submit" class="btn-primary">Save Category</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // Add form submission handler
+            document.getElementById('category-form').addEventListener('submit', handleCategorySubmit);
+
+            return modal;
+        }
+
+        async function handleCategorySubmit(e) {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const categoryData = {
+                name: formData.get('name'),
+                description: formData.get('description')
+            };
+
+            try {
+                const method = window.currentCategoryId ? 'PUT' : 'POST';
+                const url = window.currentCategoryId ?
+                    `/api/admin/categories/${window.currentCategoryId}` :
+                    '/api/admin/categories';
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(categoryData)
+                });
+
+                if (response.ok) {
+                    closeModal();
+                    showCategoriesMessage(`Category ${window.currentCategoryId ? 'updated' : 'created'} successfully!`, 'success');
+                    loadCategories();
+                } else {
+                    const error = await response.json();
+                    showCategoriesMessage(error.error || 'Failed to save category', 'error');
+                }
+            } catch (error) {
+                console.error('Failed to save category:', error);
+                showCategoriesMessage('Failed to save category', 'error');
+            }
+        }
+
+        function editCategory(id, name, description) {
+            openCategoryModal(id, name, description);
+        }
+
+        async function deleteCategory(id, name) {
+            if (!confirm(`Are you sure you want to delete the category "${name}"? This may affect existing requests.`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/categories/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showCategoriesMessage('Category deleted successfully!', 'success');
+                    loadCategories();
+                } else {
+                    const error = await response.json();
+                    showCategoriesMessage(error.error || 'Failed to delete category', 'error');
+                }
+            } catch (error) {
+                console.error('Failed to delete category:', error);
+                showCategoriesMessage('Failed to delete category', 'error');
+            }
+        }
+
+        function showCategoriesMessage(message, type) {
+            const messageDiv = document.getElementById('categories-message');
+            messageDiv.textContent = message;
+            messageDiv.className = type + '-message';
+            messageDiv.style.display = 'block';
+
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
