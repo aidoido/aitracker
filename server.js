@@ -70,10 +70,12 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: false, // Disable secure for Railway (uses HTTPS proxy)
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000
-  }
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    sameSite: 'lax' // Allow cross-site requests
+  },
+  name: 'aitracker.sid' // Custom session name
 }));
 
 // Static files
@@ -88,18 +90,48 @@ app.use('/api/admin', require('./routes/admin'));
 
 // Frontend routes
 app.get('/', (req, res) => {
+  console.log('Dashboard access - Session check:', {
+    userId: req.session.userId,
+    username: req.session.username,
+    role: req.session.role,
+    sessionID: req.session.id
+  });
+
   if (!req.session.userId) {
+    console.log('No session found, redirecting to login');
     return res.redirect('/login');
   }
+
+  console.log('Session found, serving dashboard');
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.get('/login', (req, res) => {
+  console.log('Login page access - Session check:', {
+    userId: req.session.userId,
+    username: req.session.username,
+    sessionID: req.session.id
+  });
+
+  // If already logged in, redirect to dashboard
+  if (req.session.userId) {
+    console.log('Already logged in, redirecting to dashboard');
+    return res.redirect('/');
+  }
+
   res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
 app.get('/admin', (req, res) => {
+  console.log('Admin access - Session check:', {
+    userId: req.session.userId,
+    username: req.session.username,
+    role: req.session.role,
+    sessionID: req.session.id
+  });
+
   if (!req.session.userId || req.session.role !== 'admin') {
+    console.log('Admin access denied, redirecting to login');
     return res.redirect('/login');
   }
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
