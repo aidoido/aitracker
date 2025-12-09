@@ -134,6 +134,11 @@ router.put('/:id', requireAgent, async (req, res) => {
       params.push(is_kb_article);
     }
 
+    if (category_id) {
+      updates.push(`category_id = $${++paramCount}`);
+      params.push(category_id);
+    }
+
     if (requester_name) {
       updates.push(`requester_name = $${++paramCount}`);
       params.push(requester_name);
@@ -262,6 +267,17 @@ router.post('/:id/recategorize', requireAgent, async (req, res) => {
       error: 'Failed to recategorize request',
       details: error.message
     });
+  }
+});
+
+// Get all categories
+router.get('/categories', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id, name FROM categories ORDER BY name');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 

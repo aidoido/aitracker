@@ -67,7 +67,7 @@ router.get('/metrics', async (req, res) => {
 router.get('/categories', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT c.name, COUNT(sr.id) as count
+      SELECT c.id, c.name, COUNT(sr.id) as count
       FROM categories c
       LEFT JOIN support_requests sr ON c.id = sr.category_id
       GROUP BY c.id, c.name

@@ -523,9 +523,57 @@ async function exportToCsv() {
 }
 
 // Request modal functions
-function openRequestModal() {
+async function openRequestModal() {
     elements.requestForm.reset();
+    await loadCategories();
     elements.requestModal.style.display = 'block';
+}
+
+// Load categories for the dropdown
+async function loadCategories() {
+    try {
+        const response = await fetch('/api/dashboard/categories');
+        const categories = await response.json();
+
+        const categorySelect = document.getElementById('category');
+        categorySelect.innerHTML = '<option value="">Select Category</option>';
+
+        categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.name;
+            categorySelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Failed to load categories:', error);
+        const categorySelect = document.getElementById('category');
+        categorySelect.innerHTML = '<option value="">Error loading categories</option>';
+    }
+}
+
+// Load categories for edit mode
+async function loadEditCategories(selectedCategoryId) {
+    try {
+        const response = await fetch('/api/dashboard/categories');
+        const categories = await response.json();
+
+        const categorySelect = document.getElementById('edit-category');
+        categorySelect.innerHTML = '<option value="">Select Category</option>';
+
+        categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.name;
+            if (category.id == selectedCategoryId) {
+                option.selected = true;
+            }
+            categorySelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Failed to load edit categories:', error);
+        const categorySelect = document.getElementById('edit-category');
+        categorySelect.innerHTML = '<option value="">Error loading categories</option>';
+    }
 }
 
 async function handleRequestSubmit(e) {
@@ -792,7 +840,7 @@ function toggleEditMode(request) {
 }
 
 // Enter edit mode
-function enterEditMode(request) {
+async function enterEditMode(request) {
     const contentDiv = document.getElementById('request-detail-content');
     const editBtn = document.getElementById('edit-request-btn');
 
@@ -822,7 +870,11 @@ function enterEditMode(request) {
             </div>
             <div class="detail-section">
                 <div class="detail-label">Category:</div>
-                <div class="detail-value">${request.category_name || 'Uncategorized'}</div>
+                <div class="detail-value">
+                    <select id="edit-category" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="">Loading categories...</option>
+                    </select>
+                </div>
             </div>
             <div class="detail-section">
                 <div class="detail-label">Severity:</div>
@@ -881,14 +933,18 @@ function enterEditMode(request) {
     `;
 
     contentDiv.innerHTML = editableContent;
+
+    // Load categories for the dropdown
+    await loadEditCategories(request.category_id);
 }
 
 // Save request changes
 async function saveRequestChanges(requestId) {
     const requesterName = document.getElementById('edit-requester-name').value;
     const channel = document.getElementById('edit-channel').value;
-    const description = document.getElementById('edit-description').value;
+    const categoryId = document.getElementById('edit-category').value;
     const severity = document.getElementById('edit-severity').value;
+    const description = document.getElementById('edit-description').value;
 
     try {
         const response = await fetch(`/api/requests/${requestId}`, {
@@ -897,8 +953,9 @@ async function saveRequestChanges(requestId) {
             body: JSON.stringify({
                 requester_name: requesterName,
                 channel: channel,
-                description: description,
-                severity: severity
+                category_id: categoryId,
+                severity: severity,
+                description: description
             })
         });
 
