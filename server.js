@@ -140,6 +140,15 @@ app.get('/api/test-session', (req, res) => {
   });
 });
 
+// Test API endpoint
+app.get('/api/test-api', (req, res) => {
+  res.json({
+    status: 'API routes working',
+    timestamp: new Date().toISOString(),
+    routes: ['/api/auth', '/api/requests', '/api/dashboard', '/api/kb', '/api/admin']
+  });
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
