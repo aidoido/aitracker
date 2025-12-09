@@ -254,23 +254,126 @@ function renderChart(data) {
     });
 }
 
-// Simple CSS-based chart as fallback
+// Modern SVG-based sleek chart
 function renderSimpleChart(canvas, data) {
     const container = canvas.parentElement;
-    container.innerHTML = `
-        <div style="padding: 20px; background: #f8f9fa; border-radius: 8px; text-align: center;">
-            <h4>Request Trends (Last 7 Days)</h4>
-            <div style="display: flex; justify-content: space-around; margin-top: 20px; flex-wrap: wrap;">
-                ${data.slice(-7).map(item => `
-                    <div style="text-align: center; margin: 5px;">
-                        <div style="height: ${Math.max(item.count * 15, 30)}px; width: 40px; background: #3498db; margin: 0 auto 8px; border-radius: 4px; display: flex; align-items: end; justify-content: center; color: white; font-weight: bold; font-size: 12px;">
-                            ${item.count}
-                        </div>
-                        <div style="font-size: 11px; color: #666;">${new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
-                    </div>
+    const chartData = data.slice(-7); // Last 7 days
+    const maxValue = Math.max(...chartData.map(d => d.count), 1);
+
+    // Chart dimensions
+    const width = 600;
+    const height = 320;
+    const padding = { top: 50, right: 40, bottom: 70, left: 70 };
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
+
+    // Generate modern SVG chart
+    const svg = `
+        <svg width="${width}" height="${height}" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+            <!-- Gradient background -->
+            <defs>
+                <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#f093fb;stop-opacity:0.1" />
+                    <stop offset="100%" style="stop-color:#f5576c;stop-opacity:0.1" />
+                </linearGradient>
+
+                ${chartData.map((item, index) => `
+                    <linearGradient id="barGradient${index}" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                        <stop offset="50%" style="stop-color:#764ba2;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#f093fb;stop-opacity:1" />
+                    </linearGradient>
                 `).join('')}
+
+                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="2" dy="4" stdDeviation="4" flood-color="rgba(0,0,0,0.1)"/>
+                </filter>
+            </defs>
+
+            <!-- Background -->
+            <rect width="${width}" height="${height}" fill="url(#bgGradient)" rx="16"/>
+
+            <!-- Title -->
+            <text x="${width/2}" y="30" text-anchor="middle" font-size="18" font-weight="700" fill="#2c3e50">
+                📊 Request Trends
+            </text>
+            <text x="${width/2}" y="50" text-anchor="middle" font-size="12" fill="#666">
+                Last 7 Days Performance
+            </text>
+
+            <!-- Y-axis grid and labels -->
+            ${[0, 1, 2, 3, 4].map(i => {
+                const value = Math.round(maxValue * (4-i) / 4);
+                const y = padding.top + (chartHeight * i / 4);
+                return `
+                    <line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}"
+                          stroke="#e1e8ed" stroke-width="1" opacity="0.3"/>
+                    <text x="${padding.left - 15}" y="${y + 4}" text-anchor="end" font-size="11" fill="#666" font-weight="500">
+                        ${value}
+                    </text>
+                `;
+            }).join('')}
+
+            <!-- Bars with animations -->
+            ${chartData.map((item, index) => {
+                const barWidth = Math.max(chartWidth / chartData.length * 0.65, 25);
+                const barSpacing = chartWidth / chartData.length;
+                const barHeight = (item.count / maxValue) * chartHeight;
+                const x = padding.left + (index * barSpacing) + (barSpacing - barWidth) / 2;
+                const y = padding.top + chartHeight - barHeight;
+
+                return `
+                    <!-- Bar shadow -->
+                    <rect x="${x+2}" y="${y+2}" width="${barWidth}" height="${barHeight}"
+                          fill="#000" opacity="0.1" rx="6" filter="url(#shadow)"/>
+
+                    <!-- Main bar -->
+                    <rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}"
+                          fill="url(#barGradient${index})" rx="6" class="chart-bar"
+                          style="transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);"/>
+
+                    <!-- Value label above bar -->
+                    <text x="${x + barWidth/2}" y="${y - 12}" text-anchor="middle"
+                          font-size="13" font-weight="700" fill="#2c3e50">
+                        ${item.count}
+                    </text>
+
+                    <!-- Date label below -->
+                    <text x="${x + barWidth/2}" y="${height - 25}" text-anchor="middle"
+                          font-size="11" fill="#666" font-weight="500">
+                        ${new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </text>
+
+                    <!-- Tooltip on hover -->
+                    <rect x="${x - 10}" y="${y - 35}" width="${barWidth + 20}" height="25"
+                          fill="#2c3e50" opacity="0" rx="4" class="tooltip-bg">
+                        <title>${item.count} requests on ${new Date(item.date).toLocaleDateString()}</title>
+                    </rect>
+                `;
+            }).join('')}
+
+            <!-- X-axis line -->
+            <line x1="${padding.left}" y1="${padding.top + chartHeight}"
+                  x2="${width - padding.right}" y2="${padding.top + chartHeight}"
+                  stroke="#ddd" stroke-width="2"/>
+
+            <!-- Hover animations -->
+            <style>
+                .chart-bar { cursor: pointer; }
+                .chart-bar:hover {
+                    transform: translateY(-3px) scale(1.05);
+                    filter: brightness(1.1);
+                }
+                .tooltip-bg:hover { opacity: 0.9 !important; }
+            </style>
+        </svg>
+    `;
+
+    container.innerHTML = `
+        <div style="display: flex; justify-content: center; padding: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); border-radius: 20px; margin: 25px 0; box-shadow: 0 20px 60px rgba(102, 126, 234, 0.15);">
+            <div style="background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 16px; padding: 25px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.2);">
+                ${svg}
             </div>
-            <p style="margin-top: 15px; font-size: 12px; color: #666;">Simple chart (Chart.js not loaded due to CSP)</p>
         </div>
     `;
 }
