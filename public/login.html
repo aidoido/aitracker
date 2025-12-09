@@ -150,6 +150,8 @@
                 password: formData.get('password')
             };
 
+            console.log('Attempting login with:', loginData.username);
+
             try {
                 const response = await fetch('/api/auth/login', {
                     method: 'POST',
@@ -159,18 +161,23 @@
                     body: JSON.stringify(loginData)
                 });
 
+                console.log('Response status:', response.status);
+
                 const data = await response.json();
+                console.log('Response data:', data);
 
                 if (response.ok) {
+                    console.log('Login successful, redirecting...');
                     // Redirect to dashboard
                     window.location.href = '/';
                 } else {
                     // Show error
-                    errorMessage.textContent = data.error || 'Login failed';
+                    console.error('Login failed:', data);
+                    errorMessage.textContent = data.error || data.details || 'Login failed';
                     errorMessage.style.display = 'block';
                 }
             } catch (error) {
-                console.error('Login error:', error);
+                console.error('Network error:', error);
                 errorMessage.textContent = 'Network error. Please try again.';
                 errorMessage.style.display = 'block';
             } finally {
