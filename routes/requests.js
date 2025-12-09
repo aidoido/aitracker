@@ -74,30 +74,26 @@ router.get('/:id', async (req, res) => {
 // Create new request (agents only)
 router.post('/', requireAgent, async (req, res) => {
   try {
-    const { requester_name, channel, description } = req.body;
+    const { requester_name, channel, category_id, severity, description } = req.body;
 
-    if (!requester_name || !channel || !description) {
-      return res.status(400).json({ error: 'Requester name, channel, and description are required' });
+    if (!requester_name || !channel || !category_id || !severity || !description) {
+      return res.status(400).json({ error: 'All fields are required: requester name, channel, category, severity, and description' });
     }
 
-    // AI categorization
-    let category_id = null;
-    let severity = 'medium';
-    let ai_recommendation = null;
+    // Validate category exists
+    const categoryCheck = await pool.query('SELECT id FROM categories WHERE id = $1', [category_id]);
+    if (categoryCheck.rows.length === 0) {
+      return res.status(400).json({ error: 'Invalid category selected' });
+    }
 
+    // Optional AI recommendation (not automatic categorization)
+    let ai_recommendation = null;
     try {
       const aiResult = await aiService.categorizeRequest(description);
-      if (aiResult.category) {
-        const categoryResult = await pool.query('SELECT id FROM categories WHERE name = $1', [aiResult.category]);
-        if (categoryResult.rows.length > 0) {
-          category_id = categoryResult.rows[0].id;
-        }
-      }
-      severity = aiResult.severity || 'medium';
-      ai_recommendation = aiResult.recommendation;
+      ai_recommendation = aiResult.recommendation; // Only get recommendation, not category/severity
     } catch (aiError) {
-      console.warn('AI categorization failed:', aiError.message);
-      // Continue without AI categorization
+      console.warn('AI recommendation failed:', aiError.message);
+      // Continue without AI recommendation
     }
 
     const result = await pool.query(`

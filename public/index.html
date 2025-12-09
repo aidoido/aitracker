@@ -124,6 +124,27 @@
                     </select>
                 </div>
                 <div class="form-group">
+                    <label for="category">Category *</label>
+                    <select id="category" name="category_id" required>
+                        <option value="">Select Category</option>
+                        <option value="1">Oracle Fusion - Access Issue</option>
+                        <option value="2">Oracle Fusion - PR/PO</option>
+                        <option value="3">Finance / Invoice</option>
+                        <option value="4">Network / VPN</option>
+                        <option value="5">Teams / Communication</option>
+                        <option value="6">Training Needed</option>
+                        <option value="7">General IT</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="severity">Severity *</label>
+                    <select id="severity" name="severity" required>
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label for="description">Problem Description *</label>
                     <textarea id="description" name="description" rows="4" required></textarea>
                 </div>

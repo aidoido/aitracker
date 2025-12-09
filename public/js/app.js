@@ -535,6 +535,8 @@ async function handleRequestSubmit(e) {
     const requestData = {
         requester_name: formData.get('requester-name'),
         channel: formData.get('channel'),
+        category_id: formData.get('category_id'),
+        severity: formData.get('severity'),
         description: formData.get('description')
     };
 
@@ -870,7 +872,7 @@ function enterEditMode(request) {
             <div class="action-buttons">
                 <button class="btn-primary" onclick="generateAIReply(${request.id})">Generate AI Reply</button>
                 ${currentUser.role !== 'viewer' ? `
-                    <button class="btn-secondary" onclick="recategorizeRequest(${request.id})">AI Recategorize</button>
+                    <button class="btn-secondary" onclick="recategorizeRequest(${request.id})">AI Suggestions</button>
                     <button class="btn-secondary" onclick="editRequestSolution(${request.id})">Add/Edit Solution</button>
                     <button class="btn-secondary" onclick="createKbFromRequest(${request.id})">Create KB Article</button>
                 ` : ''}
@@ -917,7 +919,7 @@ async function saveRequestChanges(requestId) {
 // Recategorize request with AI
 async function recategorizeRequest(requestId) {
     try {
-        showSuccess('Recategorizing request with AI...');
+        showSuccess('Getting AI suggestions...');
 
         const response = await fetch(`/api/requests/${requestId}/recategorize`, {
             method: 'POST'
@@ -925,7 +927,7 @@ async function recategorizeRequest(requestId) {
 
         if (response.ok) {
             const data = await response.json();
-            showSuccess('Request recategorized successfully!');
+            showSuccess('AI suggestions updated! Check the recommendation below.');
 
             // Refresh the request details to show new categorization
             setTimeout(() => openRequestDetail(requestId), 1000);
