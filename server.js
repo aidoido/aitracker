@@ -191,6 +191,35 @@ app.get('/api/test-api', (req, res) => {
   });
 });
 
+// Test AI configuration
+app.get('/api/test-ai', async (req, res) => {
+  try {
+    const aiService = require('./utils/ai-service');
+    const settings = await aiService.getSettings();
+
+    // Test basic AI categorization without making API call
+    const hasApiKey = !!settings.api_key_encrypted;
+    const categorizationEnabled = settings.categorization_enabled;
+    const repliesEnabled = settings.replies_enabled;
+    const summariesEnabled = settings.summaries_enabled;
+
+    res.json({
+      status: 'AI configuration check',
+      api_key_configured: hasApiKey,
+      categorization_enabled: categorizationEnabled,
+      replies_enabled: repliesEnabled,
+      summaries_enabled: summariesEnabled,
+      model_name: settings.model_name || 'grok-beta',
+      temperature: settings.temperature || 0.7
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'AI configuration error',
+      error: error.message
+    });
+  }
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
