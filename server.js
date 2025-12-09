@@ -236,8 +236,9 @@ app.use((req, res) => {
 });
 
 // Start server
-app.listen(PORT, 'localhost', () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
+app.listen(PORT, host, () => {
+  console.log(`Server running on ${host}:${PORT}`);
 });
 
 // Graceful shutdown
