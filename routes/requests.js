@@ -270,6 +270,37 @@ router.post('/:id/recategorize', requireAgent, async (req, res) => {
   }
 });
 
+// Delete request (agents and admins only)
+router.delete('/:id', requireAgent, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if request exists
+    const requestCheck = await pool.query('SELECT id, requester_name FROM support_requests WHERE id = $1', [id]);
+    if (requestCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Request not found' });
+    }
+
+    const request = requestCheck.rows[0];
+
+    // Delete the request
+    await pool.query('DELETE FROM support_requests WHERE id = $1', [id]);
+
+    console.log(`Request ${id} deleted by user ${req.session.userId}`);
+
+    res.json({
+      message: 'Request deleted successfully',
+      deleted_request: {
+        id: request.id,
+        requester_name: request.requester_name
+      }
+    });
+  } catch (error) {
+    console.error('Error deleting request:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Get all categories
 router.get('/categories', async (req, res) => {
   try {

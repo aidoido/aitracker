@@ -401,6 +401,7 @@ async function openRequestDetail(requestId) {
                     ${currentUser.role !== 'viewer' ? `
                         <button class="btn-secondary" onclick="editRequestSolution(${request.id})">Add/Edit Solution</button>
                         <button class="btn-secondary" onclick="createKbFromRequest(${request.id})">Create KB Article</button>
+                        <button class="btn-danger" onclick="deleteRequest(${request.id}, '${request.requester_name.replace(/'/g, "\\'")}')">Delete Request</button>
                     ` : ''}
                 </div>
             </div>
@@ -1017,6 +1018,42 @@ async function recategorizeRequest(requestId) {
     }
 }
 
+// Delete request
+async function deleteRequest(requestId, requesterName) {
+    if (!confirm(`Are you sure you want to delete the request from "${requesterName}"?\n\nThis action cannot be undone.`)) {
+        return;
+    }
+
+    if (!confirm('This will permanently delete the request and all associated data. Are you absolutely sure?')) {
+        return;
+    }
+
+    try {
+        showSuccess('Deleting request...');
+
+        const response = await fetch(`/api/requests/${requestId}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            showSuccess('Request deleted successfully!');
+            closeModal();
+            // Refresh the dashboard/requests list
+            if (window.location.pathname.includes('/requests') || document.getElementById('requests-section')) {
+                loadRequests();
+            } else {
+                loadDashboard();
+            }
+        } else {
+            const error = await response.json();
+            showError(error.error || 'Failed to delete request');
+        }
+    } catch (error) {
+        console.error('Failed to delete request:', error);
+        showError('Network error: Unable to delete request');
+    }
+}
+
 // Copy text to clipboard
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(() => {
@@ -1039,3 +1076,4 @@ window.openKbDetail = openKbDetail;
 window.exportToCsv = exportToCsv;
 window.closeModal = closeModal;
 window.copyToClipboard = copyToClipboard;
+window.deleteRequest = deleteRequest;
