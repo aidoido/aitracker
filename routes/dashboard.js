@@ -127,4 +127,107 @@ router.get('/requests-by-date', async (req, res) => {
   }
 });
 
+// Export requests to CSV
+router.get('/export/csv', async (req, res) => {
+  try {
+    const { startDate, endDate, status, category } = req.query;
+
+    let query = `
+      SELECT
+        sr.id,
+        sr.requester_name,
+        sr.channel,
+        sr.description,
+        sr.status,
+        sr.severity,
+        sr.ai_recommendation,
+        sr.solution,
+        sr.created_at,
+        sr.updated_at,
+        sr.closed_at,
+        c.name as category_name,
+        u.username as created_by
+      FROM support_requests sr
+      LEFT JOIN categories c ON sr.category_id = c.id
+      LEFT JOIN users u ON sr.created_by = u.id
+      WHERE 1=1
+    `;
+
+    const params = [];
+    const conditions = [];
+
+    if (startDate) {
+      conditions.push(`DATE(sr.created_at) >= $${params.length + 1}`);
+      params.push(startDate);
+    }
+
+    if (endDate) {
+      conditions.push(`DATE(sr.created_at) <= $${params.length + 1}`);
+      params.push(endDate);
+    }
+
+    if (status && status !== 'all') {
+      conditions.push(`sr.status = $${params.length + 1}`);
+      params.push(status);
+    }
+
+    if (category && category !== 'all') {
+      conditions.push(`sr.category_id = $${params.length + 1}`);
+      params.push(category);
+    }
+
+    if (conditions.length > 0) {
+      query += ' AND ' + conditions.join(' AND ');
+    }
+
+    query += ' ORDER BY sr.created_at DESC';
+
+    const result = await pool.query(query, params);
+
+    // Convert to CSV
+    const csvHeaders = [
+      'ID',
+      'Requester Name',
+      'Channel',
+      'Description',
+      'Status',
+      'Severity',
+      'Category',
+      'AI Recommendation',
+      'Solution',
+      'Created Date',
+      'Updated Date',
+      'Closed Date',
+      'Created By'
+    ];
+
+    const csvRows = result.rows.map(row => [
+      row.id,
+      `"${row.requester_name}"`,
+      row.channel,
+      `"${row.description?.replace(/"/g, '""') || ''}"`,
+      row.status,
+      row.severity,
+      `"${row.category_name || ''}"`,
+      `"${row.ai_recommendation?.replace(/"/g, '""') || ''}"`,
+      `"${row.solution?.replace(/"/g, '""') || ''}"`,
+      row.created_at,
+      row.updated_at,
+      row.closed_at || '',
+      row.created_by || ''
+    ]);
+
+    const csvContent = [csvHeaders, ...csvRows]
+      .map(row => row.join(','))
+      .join('\n');
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="support_requests.csv"');
+    res.send(csvContent);
+  } catch (error) {
+    console.error('Error exporting CSV:', error);
+    res.status(500).json({ error: 'Failed to export data' });
+  }
+});
+
 module.exports = router;

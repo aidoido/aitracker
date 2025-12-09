@@ -47,6 +47,7 @@ function cacheElements() {
 
     // Requests elements
     elements.newRequestBtn = document.getElementById('new-request-btn');
+    elements.exportCsvBtn = document.getElementById('export-csv-btn');
     elements.statusFilter = document.getElementById('status-filter');
     elements.searchInput = document.getElementById('search-input');
     elements.requestsList = document.getElementById('requests-list');
@@ -78,6 +79,7 @@ function setupEventListeners() {
 
     // Requests
     elements.newRequestBtn.addEventListener('click', () => openRequestModal());
+    elements.exportCsvBtn.addEventListener('click', exportToCsv);
     elements.statusFilter.addEventListener('change', loadRequests);
     elements.searchInput.addEventListener('input', debounce(loadRequests, 300));
 
@@ -176,10 +178,65 @@ async function loadDashboard() {
         elements.closedRequests.textContent = data.statusCounts.closed;
 
         renderRecentRequests(data.recentRequests);
+        loadChartData();
     } catch (error) {
         console.error('Failed to load dashboard:', error);
         showError('Failed to load dashboard data');
     }
+}
+
+// Load chart data
+async function loadChartData() {
+    try {
+        const response = await fetch('/api/dashboard/requests-by-date');
+        const data = await response.json();
+
+        renderChart(data);
+    } catch (error) {
+        console.error('Failed to load chart data:', error);
+    }
+}
+
+// Render chart
+function renderChart(data) {
+    const ctx = document.getElementById('requestsChart');
+    if (!ctx) return;
+
+    const labels = data.map(item => new Date(item.date).toLocaleDateString());
+    const values = data.map(item => item.count);
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Requests per Day',
+                data: values,
+                borderColor: '#3498db',
+                backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
 }
 
 function renderRecentRequests(requests) {
@@ -345,6 +402,31 @@ async function generateAIReply(requestId) {
     } catch (error) {
         console.error('Failed to generate AI reply:', error);
         showError('Failed to generate AI reply');
+    }
+}
+
+// Export to CSV
+async function exportToCsv() {
+    try {
+        const status = elements.statusFilter.value;
+        let url = '/api/dashboard/export/csv?';
+
+        if (status && status !== 'all') {
+            url += `status=${status}&`;
+        }
+
+        // Create a temporary link to download the file
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'support_requests.csv';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        showSuccess('CSV export started');
+    } catch (error) {
+        console.error('Export failed:', error);
+        showError('Failed to export data');
     }
 }
 
@@ -608,4 +690,5 @@ window.generateAIReply = generateAIReply;
 window.editRequestSolution = editRequestSolution;
 window.createKbFromRequest = createKbFromRequest;
 window.openKbDetail = openKbDetail;
+window.exportToCsv = exportToCsv;
 window.closeModal = closeModal;

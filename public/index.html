@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MS Teams Support Tracker</title>
     <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container">
@@ -45,8 +46,18 @@
                     </div>
                 </div>
 
+                <div class="charts-section">
+                    <h3>Request Trends</h3>
+                    <div class="chart-container">
+                        <canvas id="requestsChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+
                 <div class="recent-requests">
-                    <h3>Recent Requests</h3>
+                    <div class="section-header">
+                        <h3>Recent Requests</h3>
+                        <button id="export-csv-btn" class="btn-secondary">Export to CSV</button>
+                    </div>
                     <div id="recent-requests-list"></div>
                 </div>
             </div>
@@ -55,7 +66,10 @@
             <div id="requests-section" class="section">
                 <div class="section-header">
                     <h2>Support Requests</h2>
-                    <button id="new-request-btn" class="btn-primary">New Request</button>
+                    <div>
+                        <button id="export-csv-btn" class="btn-secondary">Export CSV</button>
+                        <button id="new-request-btn" class="btn-primary">New Request</button>
+                    </div>
                 </div>
 
                 <div class="filters">
