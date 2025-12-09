@@ -92,6 +92,11 @@ function setupEventListeners() {
 
     // Requests
     elements.newRequestBtn.addEventListener('click', () => openRequestModal());
+    // Also handle dashboard new request button
+    const dashboardNewRequestBtn = document.getElementById('dashboard-new-request-btn');
+    if (dashboardNewRequestBtn) {
+        dashboardNewRequestBtn.addEventListener('click', () => openRequestModal());
+    }
     elements.exportCsvBtn.addEventListener('click', exportToCsv);
     elements.statusFilter.addEventListener('change', loadRequests);
     elements.searchInput.addEventListener('input', debounce(loadRequests, 300));
