@@ -202,8 +202,28 @@ router.post('/:id/generate-reply', requireAgent, async (req, res) => {
 
     res.json({ reply: aiReply });
   } catch (error) {
-    console.error('Error generating AI reply:', error);
-    res.status(500).json({ error: 'Failed to generate AI reply' });
+    console.error('Error generating AI reply:', error.message);
+
+    // Provide specific error messages for different failure types
+    let errorMessage = 'Failed to generate AI reply';
+    let errorDetails = '';
+
+    if (error.message.includes('API key not configured')) {
+      errorMessage = 'AI features not configured';
+      errorDetails = 'Please configure your Grok API key in the Admin panel → AI Settings';
+    } else if (error.message.includes('fetch')) {
+      errorMessage = 'AI service unavailable';
+      errorDetails = 'Unable to connect to AI service. Please check your API key and try again.';
+    } else if (error.message.includes('rate limit')) {
+      errorMessage = 'AI service rate limited';
+      errorDetails = 'Too many requests. Please try again in a moment.';
+    }
+
+    res.status(500).json({
+      error: errorMessage,
+      details: errorDetails,
+      originalError: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 

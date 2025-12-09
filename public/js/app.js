@@ -448,18 +448,34 @@ async function generateAIReply(requestId) {
             method: 'POST'
         });
 
+        const data = await response.json();
+
         if (response.ok) {
-            const data = await response.json();
             // Copy to clipboard
             navigator.clipboard.writeText(data.reply).then(() => {
                 showSuccess('AI reply copied to clipboard!');
+            }).catch(() => {
+                // Fallback if clipboard fails
+                showSuccess('AI reply generated! Copy from the text below:');
+                console.log('AI Reply:', data.reply);
             });
         } else {
-            showError('Failed to generate AI reply');
+            // Show specific error messages
+            const errorMsg = data.details || data.error || 'Failed to generate AI reply';
+            showError(errorMsg);
+
+            // If it's a configuration issue, suggest going to admin
+            if (errorMsg.includes('not configured') || errorMsg.includes('API key')) {
+                setTimeout(() => {
+                    if (confirm('Would you like to configure AI settings now?')) {
+                        window.location.href = '/admin';
+                    }
+                }, 2000);
+            }
         }
     } catch (error) {
         console.error('Failed to generate AI reply:', error);
-        showError('Failed to generate AI reply');
+        showError('Network error: Unable to connect to AI service');
     }
 }
 
