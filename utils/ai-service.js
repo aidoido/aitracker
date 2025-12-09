@@ -32,6 +32,17 @@ class AIService {
     // In production, you'd decrypt it here
     const apiKey = settings.api_key_encrypted;
 
+    // Map user-friendly model names to actual API model names
+    const modelMapping = {
+      'grok-beta': 'grok-beta',
+      'grok-4-1-fast-reasoning': 'grok-2-1212', // Use a known working model
+      'grok': 'grok-beta', // Default fallback
+    };
+
+    const actualModel = modelMapping[settings.model_name] || 'grok-beta';
+
+    console.log('Using model:', actualModel, 'for requested model:', settings.model_name);
+
     const response = await fetch('https://api.x.ai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -39,18 +50,32 @@ class AIService {
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: settings.model_name || 'grok-beta',
+        model: actualModel,
         messages: [{ role: 'user', content: prompt }],
-        temperature: settings.temperature || 0.7,
+        temperature: parseFloat(settings.temperature) || 0.7,
         max_tokens: maxTokens
       })
     });
 
     if (!response.ok) {
-      throw new Error(`AI API request failed: ${response.status}`);
+      let errorDetails = `HTTP ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorDetails += `: ${errorData.error?.message || JSON.stringify(errorData)}`;
+      } catch (e) {
+        // If we can't parse error response, just use status
+        errorDetails += ` (${response.statusText})`;
+      }
+      throw new Error(`AI API request failed: ${errorDetails}`);
     }
 
     const data = await response.json();
+    console.log('AI API response received, choices:', data.choices?.length);
+
+    if (!data.choices || data.choices.length === 0) {
+      throw new Error('AI API returned no response choices');
+    }
+
     return data.choices[0].message.content;
   }
 
