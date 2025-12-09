@@ -18,25 +18,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Load initial data
     if (currentUser) {
-        loadDashboard();
+        switchSection('dashboard');
     }
 });
 
 function cacheElements() {
     // Main elements
-    elements.userGreeting = document.getElementById('user-greeting');
     elements.logoutBtn = document.getElementById('logout-btn');
-    elements.adminBtn = document.getElementById('admin-btn');
+    elements.pageTitle = document.getElementById('page-title');
+    elements.userAvatar = document.getElementById('user-avatar');
 
-    // Tabs
-    elements.dashboardTab = document.getElementById('dashboard-tab');
-    elements.requestsTab = document.getElementById('requests-tab');
-    elements.kbTab = document.getElementById('kb-tab');
+    // Navigation items
+    elements.navItems = document.querySelectorAll('.nav-item');
 
     // Sections
     elements.dashboardSection = document.getElementById('dashboard-section');
     elements.requestsSection = document.getElementById('requests-section');
     elements.kbSection = document.getElementById('kb-section');
+    elements.adminSection = document.getElementById('admin-section');
 
     // Dashboard elements
     elements.totalRequests = document.getElementById('total-requests');
@@ -75,14 +74,21 @@ function cacheElements() {
 }
 
 function setupEventListeners() {
-    // Tab switching
-    elements.dashboardTab.addEventListener('click', () => switchTab('dashboard'));
-    elements.requestsTab.addEventListener('click', () => switchTab('requests'));
-    elements.kbTab.addEventListener('click', () => switchTab('kb'));
+    // Navigation
+    elements.navItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const section = item.getAttribute('data-section');
+            if (section === 'admin') {
+                window.location.href = '/admin';
+            } else {
+                switchSection(section);
+            }
+        });
+    });
 
     // Authentication
     elements.logoutBtn.addEventListener('click', logout);
-    elements.adminBtn.addEventListener('click', () => window.location.href = '/admin');
 
     // Requests
     elements.newRequestBtn.addEventListener('click', () => openRequestModal());
@@ -131,9 +137,8 @@ async function checkAuth() {
 
 function updateUserInterface() {
     if (currentUser) {
-        elements.userGreeting.textContent = `Hello, ${currentUser.role === 'admin' ? 'Admin' : currentUser.username}!`;
         if (currentUser.role === 'admin') {
-            elements.adminBtn.style.display = 'inline-block';
+            document.getElementById('admin-nav-item').style.display = 'flex';
         }
     }
 }
@@ -148,19 +153,27 @@ async function logout() {
 }
 
 // Tab switching
-function switchTab(tabName) {
-    // Update tab buttons
-    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-    document.querySelector(`#${tabName}-tab`).classList.add('active');
+function switchSection(sectionName) {
+    // Update navigation items
+    elements.navItems.forEach(item => item.classList.remove('active'));
+    document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
 
     // Update sections
     document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
-    document.querySelector(`#${tabName}-section`).classList.add('active');
+    document.querySelector(`#${sectionName}-section`).classList.add('active');
 
-    currentSection = tabName;
+    // Update page title
+    const titles = {
+        'dashboard': 'Dashboard',
+        'requests': 'Requests',
+        'kb': 'Knowledge Base'
+    };
+    elements.pageTitle.textContent = titles[sectionName] || 'Dashboard';
+
+    currentSection = sectionName;
 
     // Load section data
-    switch (tabName) {
+    switch (sectionName) {
         case 'dashboard':
             loadDashboard();
             break;
@@ -398,18 +411,23 @@ async function loadRequests() {
 
 function renderRequests(requests) {
     if (!requests || requests.length === 0) {
-        elements.requestsList.innerHTML = '<p class="loading">No requests found</p>';
+        elements.requestsList.innerHTML = '<div style="padding: var(--space-8); text-align: center; color: var(--color-gray-500);">No requests found</div>';
         return;
     }
 
     elements.requestsList.innerHTML = requests.map(request => `
         <div class="request-item" onclick="openRequestDetail(${request.id})">
-            <div class="request-header">
+            <div class="request-info">
                 <div class="request-title">${request.requester_name} - ${request.category_name || 'Uncategorized'}</div>
-                <div class="request-meta">${new Date(request.created_at).toLocaleDateString()} by ${request.created_by_username}</div>
+                <div class="request-meta">
+                    <span>${new Date(request.created_at).toLocaleDateString()}</span>
+                    <span>•</span>
+                    <span>${request.created_by_username}</span>
+                    <span>•</span>
+                    <span>${request.channel}</span>
+                </div>
             </div>
-            <div class="request-description">${truncateText(request.description, 150)}</div>
-            <span class="request-status status-${request.status}">${request.status.replace('_', ' ')}</span>
+            <div class="request-status status-${request.status}">${request.status.replace('_', ' ')}</div>
         </div>
     `).join('');
 }
@@ -729,18 +747,21 @@ async function loadKbArticles() {
 
 function renderKbArticles(articles) {
     if (!articles || articles.length === 0) {
-        elements.kbArticlesList.innerHTML = '<p class="loading">No articles found</p>';
+        elements.kbArticlesList.innerHTML = '<div style="padding: var(--space-8); text-align: center; color: var(--color-gray-500);">No articles found</div>';
         return;
     }
 
     elements.kbArticlesList.innerHTML = articles.map(article => `
         <div class="kb-item" onclick="openKbDetail(${article.id})">
-            <div class="request-header">
-                <div class="request-title">${article.problem_summary}</div>
-                <div class="request-meta">Confidence: ${article.confidence}/5 • ${new Date(article.updated_at).toLocaleDateString()}</div>
+            <div class="kb-info">
+                <div class="kb-title">${article.problem_summary}</div>
+                <div class="kb-meta">
+                    <span>Confidence: ${article.confidence}/5</span>
+                    <span>•</span>
+                    <span>${new Date(article.updated_at).toLocaleDateString()}</span>
+                    ${article.category_name ? `<span>•</span><span>${article.category_name}</span>` : ''}
+                </div>
             </div>
-            <div class="request-description">${truncateText(article.solution, 150)}</div>
-            ${article.category_name ? `<small>Category: ${article.category_name}</small>` : ''}
         </div>
     `).join('');
 }
