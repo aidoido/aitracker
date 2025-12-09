@@ -62,6 +62,14 @@ function cacheElements() {
     elements.requestDetailModal = document.getElementById('request-detail-modal');
     elements.kbModal = document.getElementById('kb-modal');
 
+    // Debug modal elements
+    console.log('Modal elements loaded:', {
+        requestModal: !!elements.requestModal,
+        requestDetailModal: !!elements.requestDetailModal,
+        kbModal: !!elements.kbModal,
+        requestDetailContent: !!document.getElementById('request-detail-content')
+    });
+
     // Forms
     elements.requestForm = document.getElementById('request-form');
     elements.kbForm = document.getElementById('kb-form');
@@ -297,9 +305,17 @@ function renderRequests(requests) {
 
 // Request detail modal
 async function openRequestDetail(requestId) {
+    console.log('Opening request detail for ID:', requestId);
     try {
         const response = await fetch(`/api/requests/${requestId}`);
+        console.log('API response status:', response.status);
+
+        if (!response.ok) {
+            throw new Error(`API request failed: ${response.status}`);
+        }
+
         const request = await response.json();
+        console.log('Request data received:', request);
 
         const content = `
             <div class="request-detail">
@@ -355,11 +371,25 @@ async function openRequestDetail(requestId) {
             </div>
         `;
 
-        document.getElementById('request-detail-content').innerHTML = content;
-        elements.requestDetailModal.style.display = 'block';
+        console.log('Setting modal content...');
+        const contentElement = document.getElementById('request-detail-content');
+        const modalElement = elements.requestDetailModal;
+
+        console.log('Content element found:', !!contentElement);
+        console.log('Modal element found:', !!modalElement);
+
+        if (!contentElement || !modalElement) {
+            console.error('Modal elements not found!');
+            showError('Modal elements not found');
+            return;
+        }
+
+        contentElement.innerHTML = content;
+        modalElement.style.display = 'block';
+        console.log('Modal opened successfully');
     } catch (error) {
         console.error('Failed to load request detail:', error);
-        showError('Failed to load request details');
+        showError(`Failed to load request details: ${error.message}`);
     }
 }
 
