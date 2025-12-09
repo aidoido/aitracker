@@ -8,7 +8,7 @@ const path = require('path');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 5000; // Railway uses 8080
+const PORT = process.env.PORT || 3000; // Railway uses 8080
 
 // Database connection - Initialize FIRST
 const { Pool } = require('pg');
@@ -227,8 +227,8 @@ app.use((req, res) => {
 });
 
 // Start server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
+app.listen(PORT, 'localhost', () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });
 
 // Graceful shutdown
