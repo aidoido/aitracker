@@ -117,7 +117,7 @@ router.post('/', requireAgent, async (req, res) => {
 router.put('/:id', requireAgent, async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, solution, is_kb_article } = req.body;
+    const { status, solution, is_kb_article, requester_name, channel, description } = req.body;
 
     const updates = [];
     const params = [id];
@@ -136,6 +136,21 @@ router.put('/:id', requireAgent, async (req, res) => {
     if (is_kb_article !== undefined) {
       updates.push(`is_kb_article = $${++paramCount}`);
       params.push(is_kb_article);
+    }
+
+    if (requester_name) {
+      updates.push(`requester_name = $${++paramCount}`);
+      params.push(requester_name);
+    }
+
+    if (channel) {
+      updates.push(`channel = $${++paramCount}`);
+      params.push(channel);
+    }
+
+    if (description) {
+      updates.push(`description = $${++paramCount}`);
+      params.push(description);
     }
 
     if (status === 'closed') {

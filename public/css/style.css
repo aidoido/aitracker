@@ -260,6 +260,22 @@ nav {
 
 .modal-content.large {
     max-width: 800px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.edit-mode .detail-section {
+    background: #fff3cd;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    border-left: 4px solid #ffc107;
+}
+
+.edit-mode .detail-label {
+    font-weight: bold;
+    margin-bottom: 8px;
+    display: block;
 }
 
 .modal-header {

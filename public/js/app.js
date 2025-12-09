@@ -422,6 +422,13 @@ async function openRequestDetail(requestId) {
         contentElement.innerHTML = content;
         modalElement.style.display = 'block';
         console.log('Modal opened successfully');
+
+    // Set up edit button
+    const editBtn = document.getElementById('edit-request-btn');
+    if (editBtn) {
+        editBtn.onclick = () => toggleEditMode(request);
+    }
+
     } catch (error) {
         console.error('Failed to load request detail:', error);
         showError(`Failed to load request details: ${error.message}`);
@@ -766,6 +773,136 @@ async function openKbDetail(articleId) {
     // This would open a detail modal for KB articles
     // For now, just show an alert
     showSuccess('KB article detail view coming soon');
+}
+
+// Toggle edit mode for request details
+function toggleEditMode(request) {
+    const contentDiv = document.getElementById('request-detail-content');
+    const editBtn = document.getElementById('edit-request-btn');
+
+    if (contentDiv.classList.contains('edit-mode')) {
+        // Save changes
+        saveRequestChanges(request.id);
+    } else {
+        // Enter edit mode
+        enterEditMode(request);
+    }
+}
+
+// Enter edit mode
+function enterEditMode(request) {
+    const contentDiv = document.getElementById('request-detail-content');
+    const editBtn = document.getElementById('edit-request-btn');
+
+    contentDiv.classList.add('edit-mode');
+    editBtn.textContent = 'Save Changes';
+    editBtn.className = 'btn-primary';
+
+    // Replace static content with editable fields
+    const editableContent = `
+        <div class="request-detail">
+            <div class="detail-section">
+                <div class="detail-label">Requester Name:</div>
+                <div class="detail-value">
+                    <input type="text" id="edit-requester-name" value="${request.requester_name}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+            </div>
+            <div class="detail-section">
+                <div class="detail-label">Channel:</div>
+                <div class="detail-value">
+                    <select id="edit-channel" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="teams_chat" ${request.channel === 'teams_chat' ? 'selected' : ''}>Teams Chat</option>
+                        <option value="teams_call" ${request.channel === 'teams_call' ? 'selected' : ''}>Teams Call</option>
+                        <option value="email" ${request.channel === 'email' ? 'selected' : ''}>Email</option>
+                        <option value="other" ${request.channel === 'other' ? 'selected' : ''}>Other</option>
+                    </select>
+                </div>
+            </div>
+            <div class="detail-section">
+                <div class="detail-label">Category:</div>
+                <div class="detail-value">${request.category_name || 'Uncategorized'}</div>
+            </div>
+            <div class="detail-section">
+                <div class="detail-label">Severity:</div>
+                <div class="detail-value">${request.severity}</div>
+            </div>
+            <div class="detail-section">
+                <div class="detail-label">Status:</div>
+                <div class="detail-value">
+                    <select id="request-status" onchange="updateRequestStatus(${request.id}, this.value)">
+                        <option value="open" ${request.status === 'open' ? 'selected' : ''}>Open</option>
+                        <option value="in_progress" ${request.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
+                        <option value="closed" ${request.status === 'closed' ? 'selected' : ''}>Closed</option>
+                    </select>
+                </div>
+            </div>
+            <div class="detail-section">
+                <div class="detail-label">Description:</div>
+                <div class="detail-value">
+                    <textarea id="edit-description" rows="4" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">${request.description}</textarea>
+                </div>
+            </div>
+            ${request.ai_recommendation ? `
+                <div class="detail-section">
+                    <div class="detail-label">AI Recommendation:</div>
+                    <div class="ai-recommendation">${request.ai_recommendation}</div>
+                </div>
+            ` : ''}
+            ${request.ai_reply ? `
+                <div class="detail-section">
+                    <div class="detail-label">AI Generated Reply:</div>
+                    <div class="ai-reply" style="background: #e8f4fd; padding: 12px; border-radius: 6px; border-left: 4px solid #3498db; margin-top: 8px;">${request.ai_reply.replace(/\n/g, '<br>')}</div>
+                    <button class="btn-secondary" onclick="copyToClipboard('${request.ai_reply.replace(/'/g, "\\'").replace(/\n/g, '\\n')}')" style="margin-top: 8px; font-size: 12px;">Copy Reply</button>
+                </div>
+            ` : ''}
+            ${request.solution ? `
+                <div class="detail-section">
+                    <div class="detail-label">Solution:</div>
+                    <div class="solution-section">${request.solution}</div>
+                </div>
+            ` : ''}
+            <div class="action-buttons">
+                <button class="btn-primary" onclick="generateAIReply(${request.id})">Generate AI Reply</button>
+                ${currentUser.role !== 'viewer' ? `
+                    <button class="btn-secondary" onclick="editRequestSolution(${request.id})">Add/Edit Solution</button>
+                    <button class="btn-secondary" onclick="createKbFromRequest(${request.id})">Create KB Article</button>
+                ` : ''}
+            </div>
+        </div>
+    `;
+
+    contentDiv.innerHTML = editableContent;
+}
+
+// Save request changes
+async function saveRequestChanges(requestId) {
+    const requesterName = document.getElementById('edit-requester-name').value;
+    const channel = document.getElementById('edit-channel').value;
+    const description = document.getElementById('edit-description').value;
+
+    try {
+        const response = await fetch(`/api/requests/${requestId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                requester_name: requesterName,
+                channel: channel,
+                description: description
+            })
+        });
+
+        if (response.ok) {
+            showSuccess('Request updated successfully!');
+            // Refresh the request details
+            openRequestDetail(requestId);
+        } else {
+            const error = await response.json();
+            showError(error.error || 'Failed to update request');
+        }
+    } catch (error) {
+        console.error('Failed to update request:', error);
+        showError('Failed to update request');
+    }
 }
 
 // Copy text to clipboard
