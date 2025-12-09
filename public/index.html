@@ -97,11 +97,11 @@
             <form id="request-form">
                 <div class="form-group">
                     <label for="requester-name">Requester Name *</label>
-                    <input type="text" id="requester-name" required>
+                    <input type="text" id="requester-name" name="requester-name" required>
                 </div>
                 <div class="form-group">
                     <label for="channel">Channel *</label>
-                    <select id="channel" required>
+                    <select id="channel" name="channel" required>
                         <option value="">Select Channel</option>
                         <option value="teams_chat">Teams Chat</option>
                         <option value="teams_call">Teams Call</option>
@@ -111,7 +111,7 @@
                 </div>
                 <div class="form-group">
                     <label for="description">Problem Description *</label>
-                    <textarea id="description" rows="4" required></textarea>
+                    <textarea id="description" name="description" rows="4" required></textarea>
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
@@ -142,21 +142,21 @@
             <form id="kb-form">
                 <div class="form-group">
                     <label for="kb-problem">Problem Summary *</label>
-                    <input type="text" id="kb-problem" required>
+                    <input type="text" id="kb-problem" name="kb-problem" required>
                 </div>
                 <div class="form-group">
                     <label for="kb-category">Category</label>
-                    <select id="kb-category">
+                    <select id="kb-category" name="kb-category">
                         <option value="">Select Category</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="kb-solution">Solution *</label>
-                    <textarea id="kb-solution" rows="6" required></textarea>
+                    <textarea id="kb-solution" name="kb-solution" rows="6" required></textarea>
                 </div>
                 <div class="form-group">
                     <label for="kb-confidence">Confidence (1-5)</label>
-                    <input type="number" id="kb-confidence" min="1" max="5" value="3">
+                    <input type="number" id="kb-confidence" name="kb-confidence" min="1" max="5" value="3">
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
