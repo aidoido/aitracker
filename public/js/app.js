@@ -383,6 +383,13 @@ async function openRequestDetail(requestId) {
                         <div class="ai-recommendation">${request.ai_recommendation}</div>
                     </div>
                 ` : ''}
+                ${request.ai_reply ? `
+                    <div class="detail-section">
+                        <div class="detail-label">AI Generated Reply:</div>
+                        <div class="ai-reply" style="background: #e8f4fd; padding: 12px; border-radius: 6px; border-left: 4px solid #3498db; margin-top: 8px;">${request.ai_reply.replace(/\n/g, '<br>')}</div>
+                        <button class="btn-secondary" onclick="copyToClipboard('${request.ai_reply.replace(/'/g, "\\'").replace(/\n/g, '\\n')}')" style="margin-top: 8px; font-size: 12px;">Copy Reply</button>
+                    </div>
+                ` : ''}
                 ${request.solution ? `
                     <div class="detail-section">
                         <div class="detail-label">Solution:</div>
@@ -453,11 +460,15 @@ async function generateAIReply(requestId) {
         if (response.ok) {
             // Copy to clipboard
             navigator.clipboard.writeText(data.reply).then(() => {
-                showSuccess('AI reply copied to clipboard!');
+                showSuccess('AI reply generated and copied to clipboard!');
+                // Refresh the request details to show the stored AI reply
+                setTimeout(() => openRequestDetail(requestId), 500);
             }).catch(() => {
                 // Fallback if clipboard fails
                 showSuccess('AI reply generated! Copy from the text below:');
                 console.log('AI Reply:', data.reply);
+                // Still refresh to show the stored reply
+                setTimeout(() => openRequestDetail(requestId), 500);
             });
         } else {
             // Show specific error messages
@@ -757,6 +768,17 @@ async function openKbDetail(articleId) {
     showSuccess('KB article detail view coming soon');
 }
 
+// Copy text to clipboard
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showSuccess('Copied to clipboard!');
+    }).catch(() => {
+        // Fallback: show in console
+        console.log('Copy this text:', text);
+        showSuccess('Text logged to console - copy from there');
+    });
+}
+
 // Make functions globally available
 window.openRequestDetail = openRequestDetail;
 window.updateRequestStatus = updateRequestStatus;
@@ -766,3 +788,4 @@ window.createKbFromRequest = createKbFromRequest;
 window.openKbDetail = openKbDetail;
 window.exportToCsv = exportToCsv;
 window.closeModal = closeModal;
+window.copyToClipboard = copyToClipboard;

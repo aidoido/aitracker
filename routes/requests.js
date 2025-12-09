@@ -198,7 +198,17 @@ router.post('/:id/generate-reply', requireAgent, async (req, res) => {
 
     const request = requestResult.rows[0];
 
+    console.log('Calling AI service...');
     const aiReply = await aiService.generateReply(request);
+    console.log('AI reply generated successfully');
+
+    // Save the AI reply to the database
+    console.log('Saving AI reply to database...');
+    await pool.query(
+      'UPDATE support_requests SET ai_reply = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+      [aiReply, id]
+    );
+    console.log('AI reply saved to database');
 
     res.json({ reply: aiReply });
   } catch (error) {

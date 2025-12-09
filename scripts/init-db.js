@@ -52,6 +52,7 @@ const createTables = async () => {
         category_id INTEGER REFERENCES categories(id),
         severity VARCHAR(20) DEFAULT 'medium' CHECK (severity IN ('low', 'medium', 'high')),
         ai_recommendation TEXT,
+        ai_reply TEXT,
         solution TEXT,
         is_kb_article BOOLEAN DEFAULT FALSE,
         created_by INTEGER REFERENCES users(id),

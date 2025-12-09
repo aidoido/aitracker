@@ -123,20 +123,26 @@ Respond with only valid JSON, no other text.`;
       throw new Error('AI replies are disabled. Enable them in Admin → AI Settings');
     }
 
-    const prompt = `Generate a professional, polite response for this Microsoft Teams support request. The response should be:
-- 3-6 lines maximum
+    const prompt = `You are an Oracle Fusion ERP support specialist. Generate a professional, Oracle Fusion-specific response for this Microsoft Teams support request. Focus on Oracle Fusion applications, modules, and best practices.
+
+Response guidelines:
+- 4-8 lines maximum
+- Oracle Fusion terminology and solutions
 - User-facing (suitable for copy-paste into Teams)
 - Include clarifying questions if information is missing
-- Provide clear next steps
+- Provide specific Oracle Fusion navigation steps when relevant
+- Suggest escalation to Oracle Support if needed
 - Professional and helpful tone
 - No mention of AI
+
+Common Oracle Fusion areas: Procurement (PR/PO), Financials, HCM, SCM, Projects, Inventory, General Ledger, Accounts Payable/Receivable, Fixed Assets, Cash Management.
 
 Request details:
 - Requester: ${request.requester_name}
 - Channel: ${request.channel.replace('_', ' ')}
-- Description: ${request.description}
+- Issue: ${request.description}
 ${request.category_name ? `- Category: ${request.category_name}` : ''}
-${request.ai_recommendation ? `- Internal note: ${request.ai_recommendation}` : ''}
+${request.ai_recommendation ? `- Internal analysis: ${request.ai_recommendation}` : ''}
 
 Generate only the response text, no quotes or additional formatting.`;
 
