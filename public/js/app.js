@@ -452,63 +452,166 @@ async function openRequestDetail(requestId) {
         console.log('Request data received:', request);
 
         const content = `
-            <div class="request-detail">
-                <div class="detail-section">
-                    <div class="detail-label">Requester:</div>
-                    <div class="detail-value">${request.requester_name}</div>
-                </div>
-                <div class="detail-section">
-                    <div class="detail-label">Channel:</div>
-                    <div class="detail-value">${request.channel.replace('_', ' ')}</div>
-                </div>
-                <div class="detail-section">
-                    <div class="detail-label">Category:</div>
-                    <div class="detail-value">${request.category_name || 'Uncategorized'}</div>
-                </div>
-                <div class="detail-section">
-                    <div class="detail-label">Severity:</div>
-                    <div class="detail-value">${request.severity}</div>
-                </div>
-                <div class="detail-section">
-                    <div class="detail-label">Status:</div>
-                    <div class="detail-value">
-                        <select id="request-status" onchange="updateRequestStatus(${request.id}, this.value)">
-                            <option value="open" ${request.status === 'open' ? 'selected' : ''}>Open</option>
-                            <option value="in_progress" ${request.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
-                            <option value="closed" ${request.status === 'closed' ? 'selected' : ''}>Closed</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="detail-section">
-                    <div class="detail-label">Description:</div>
-                    <div class="detail-value">${request.description}</div>
-                </div>
-                ${request.ai_recommendation ? `
+            <div class="request-detail-view">
+                <div class="detail-grid">
                     <div class="detail-section">
-                        <div class="detail-label">AI Recommendation:</div>
-                        <div class="ai-recommendation">${request.ai_recommendation}</div>
+                        <h4 class="detail-section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            Requester Information
+                        </h4>
+                        <div class="detail-items">
+                            <div class="detail-item">
+                                <span class="detail-label">Full Name</span>
+                                <span class="detail-value">${request.requester_name}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Contact Channel</span>
+                                <span class="detail-value">${request.channel.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Created</span>
+                                <span class="detail-value">${new Date(request.created_at).toLocaleDateString()} at ${new Date(request.created_at).toLocaleTimeString()}</span>
+                            </div>
+                        </div>
                     </div>
-                ` : ''}
-                ${request.ai_reply ? `
+
                     <div class="detail-section">
-                        <div class="detail-label">AI Generated Reply:</div>
-                        <div class="ai-reply" style="background: #e8f4fd; padding: 12px; border-radius: 6px; border-left: 4px solid #3498db; margin-top: 8px;">${request.ai_reply.replace(/\n/g, '<br>')}</div>
-                        <button class="btn-secondary" onclick="copyToClipboard('${request.ai_reply.replace(/'/g, "\\'").replace(/\n/g, '\\n')}')" style="margin-top: 8px; font-size: 12px;">Copy Reply</button>
+                        <h4 class="detail-section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 12l2 2 4-4"></path>
+                                <path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1h18z"></path>
+                                <path d="M3 12v7c0 .552.448 1 1 1h16c.552 0 1-.448 1-1v-7"></path>
+                            </svg>
+                            Issue Classification
+                        </h4>
+                        <div class="detail-items">
+                            <div class="detail-item">
+                                <span class="detail-label">Category</span>
+                                <span class="detail-value">${request.category_name || 'Uncategorized'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Priority Level</span>
+                                <span class="detail-value priority-${request.severity}">${request.severity.charAt(0).toUpperCase() + request.severity.slice(1)}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Current Status</span>
+                                <select id="request-status" onchange="updateRequestStatus(${request.id}, this.value)" class="status-select">
+                                    <option value="open" ${request.status === 'open' ? 'selected' : ''}>🟢 Open</option>
+                                    <option value="in_progress" ${request.status === 'in_progress' ? 'selected' : ''}>🟡 In Progress</option>
+                                    <option value="closed" ${request.status === 'closed' ? 'selected' : ''}>🔴 Closed</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
-                ` : ''}
-                ${request.solution ? `
-                    <div class="detail-section">
-                        <div class="detail-label">Solution:</div>
-                        <div class="solution-section">${request.solution}</div>
+
+                    <div class="detail-section full-width">
+                        <h4 class="detail-section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z"></path>
+                            </svg>
+                            Issue Description
+                        </h4>
+                        <div class="description-content">
+                            ${request.description.replace(/\n/g, '<br>')}
+                        </div>
                     </div>
-                ` : ''}
-                <div class="action-buttons">
-                    <button class="btn-primary" onclick="generateAIReply(${request.id})">Generate AI Reply</button>
-                    ${currentUser.role !== 'viewer' ? `
-                        <button class="btn-secondary" onclick="editRequestSolution(${request.id})">Add/Edit Solution</button>
-                        <button class="btn-secondary" onclick="createKbFromRequest(${request.id})">Create KB Article</button>
-                        <button class="btn-danger" onclick="deleteRequest(${request.id}, '${request.requester_name.replace(/'/g, "\\'")}')">Delete Request</button>
+
+                    ${request.ai_recommendation ? `
+                    <div class="detail-section full-width">
+                        <h4 class="detail-section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z"></path>
+                            </svg>
+                            AI Analysis
+                        </h4>
+                        <div class="ai-recommendation">
+                            ${request.ai_recommendation}
+                        </div>
+                    </div>
                     ` : ''}
+
+                    ${request.ai_reply ? `
+                    <div class="detail-section full-width">
+                        <h4 class="detail-section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 0 1-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                            </svg>
+                            AI Generated Response
+                        </h4>
+                        <div class="ai-reply-content">
+                            <div class="ai-reply">${request.ai_reply.replace(/\n/g, '<br>')}</div>
+                            <button class="btn-secondary small" onclick="copyToClipboard('${request.ai_reply.replace(/'/g, "\\'").replace(/\n/g, '\\n')}')">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                                Copy Reply
+                            </button>
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    ${request.solution ? `
+                    <div class="detail-section full-width">
+                        <h4 class="detail-section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"></path>
+                            </svg>
+                            Resolution & Solution
+                        </h4>
+                        <div class="solution-content">
+                            ${request.solution.replace(/\n/g, '<br>')}
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <div class="detail-section full-width">
+                        <h4 class="detail-section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            Actions & Tools
+                        </h4>
+                        <div class="action-buttons-grid">
+                            <button class="btn-primary" onclick="generateAIReply(${request.id})">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z"></path>
+                                </svg>
+                                Generate AI Reply
+                            </button>
+                            ${currentUser.role !== 'viewer' ? `
+                                <button class="btn-secondary" onclick="editRequestSolution(${request.id})">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                        <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                    </svg>
+                                    Add/Edit Solution
+                                </button>
+                                <button class="btn-secondary" onclick="createKbFromRequest(${request.id})">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14,2 14,8 20,8"></polyline>
+                                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                                        <polyline points="10,9 9,9 8,9"></polyline>
+                                    </svg>
+                                    Create KB Article
+                                </button>
+                                <button class="btn-danger" onclick="deleteRequest(${request.id}, '${request.requester_name.replace(/'/g, "\\'")}')">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="3,6 5,6 21,6"></polyline>
+                                        <path d="m19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2-2V6m3,0V4a2,2 0 0,1,2-2h4a2,2 0 0,1,2,2v2"></path>
+                                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                                    </svg>
+                                    Delete Request
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -976,58 +1079,89 @@ async function enterEditMode(request) {
 
     // Replace static content with editable fields
     const editableContent = `
-        <div class="request-detail">
-            <div class="detail-section">
-                <div class="detail-label">Requester Name:</div>
-                <div class="detail-value">
-                    <input type="text" id="edit-requester-name" value="${request.requester_name}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+        <div class="request-edit-view">
+            <div class="edit-grid">
+                <div class="edit-section">
+                    <h4 class="edit-section-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        Requester Information
+                    </h4>
+                    <div class="edit-row">
+                        <div class="form-group">
+                            <label for="edit-requester-name">Full Name <span class="required">*</span></label>
+                            <input type="text" id="edit-requester-name" value="${request.requester_name}" placeholder="Enter full name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-channel">Contact Channel <span class="required">*</span></label>
+                            <select id="edit-channel" required>
+                                <option value="">Select how they contacted you</option>
+                                <option value="teams_chat" ${request.channel === 'teams_chat' ? 'selected' : ''}>💬 Teams Chat</option>
+                                <option value="teams_call" ${request.channel === 'teams_call' ? 'selected' : ''}>📞 Teams Call</option>
+                                <option value="email" ${request.channel === 'email' ? 'selected' : ''}>📧 Email</option>
+                                <option value="phone" ${request.channel === 'phone' ? 'selected' : ''}>📱 Phone</option>
+                                <option value="other" ${request.channel === 'other' ? 'selected' : ''}>🔄 Other</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="detail-section">
-                <div class="detail-label">Channel:</div>
-                <div class="detail-value">
-                    <select id="edit-channel" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                        <option value="teams_chat" ${request.channel === 'teams_chat' ? 'selected' : ''}>Teams Chat</option>
-                        <option value="teams_call" ${request.channel === 'teams_call' ? 'selected' : ''}>Teams Call</option>
-                        <option value="email" ${request.channel === 'email' ? 'selected' : ''}>Email</option>
-                        <option value="other" ${request.channel === 'other' ? 'selected' : ''}>Other</option>
-                    </select>
+
+                <div class="edit-section">
+                    <h4 class="edit-section-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 12l2 2 4-4"></path>
+                            <path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1h18z"></path>
+                            <path d="M3 12v7c0 .552.448 1 1 1h16c.552 0 1-.448 1-1v-7"></path>
+                        </svg>
+                        Issue Classification
+                    </h4>
+                    <div class="edit-row">
+                        <div class="form-group">
+                            <label for="edit-category">Category <span class="required">*</span></label>
+                            <select id="edit-category" required>
+                                <option value="">Loading categories...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-severity">Priority Level <span class="required">*</span></label>
+                            <select id="edit-severity" required>
+                                <option value="">Select priority level</option>
+                                <option value="low" ${request.severity === 'low' ? 'selected' : ''}>🟢 Low - General inquiry</option>
+                                <option value="medium" ${request.severity === 'medium' ? 'selected' : ''}>🟡 Medium - Affects work with workaround</option>
+                                <option value="high" ${request.severity === 'high' ? 'selected' : ''}>🟠 High - Significantly impacts work</option>
+                                <option value="critical" ${request.severity === 'critical' ? 'selected' : ''}>🔴 Critical - Complete system outage</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="edit-row">
+                        <div class="form-group">
+                            <label for="request-status">Current Status</label>
+                            <select id="request-status" onchange="updateRequestStatus(${request.id}, this.value)" class="status-select">
+                                <option value="open" ${request.status === 'open' ? 'selected' : ''}>🟢 Open</option>
+                                <option value="in_progress" ${request.status === 'in_progress' ? 'selected' : ''}>🟡 In Progress</option>
+                                <option value="closed" ${request.status === 'closed' ? 'selected' : ''}>🔴 Closed</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="detail-section">
-                <div class="detail-label">Category:</div>
-                <div class="detail-value">
-                    <select id="edit-category" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                        <option value="">Loading categories...</option>
-                    </select>
+
+                <div class="edit-section full-width">
+                    <h4 class="edit-section-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z"></path>
+                        </svg>
+                        Issue Description
+                    </h4>
+                    <div class="form-group">
+                        <label for="edit-description">Detailed Description <span class="required">*</span></label>
+                        <textarea id="edit-description" rows="5" placeholder="Please provide a detailed description of the issue..." required>${request.description}</textarea>
+                        <div class="form-help">
+                            <small>💡 Include screenshots, error codes, or any other relevant information</small>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="detail-section">
-                <div class="detail-label">Severity:</div>
-                <div class="detail-value">
-                    <select id="edit-severity" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                        <option value="low" ${request.severity === 'low' ? 'selected' : ''}>Low</option>
-                        <option value="medium" ${request.severity === 'medium' ? 'selected' : ''}>Medium</option>
-                        <option value="high" ${request.severity === 'high' ? 'selected' : ''}>High</option>
-                    </select>
-                </div>
-            </div>
-            <div class="detail-section">
-                <div class="detail-label">Status:</div>
-                <div class="detail-value">
-                    <select id="request-status" onchange="updateRequestStatus(${request.id}, this.value)">
-                        <option value="open" ${request.status === 'open' ? 'selected' : ''}>Open</option>
-                        <option value="in_progress" ${request.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
-                        <option value="closed" ${request.status === 'closed' ? 'selected' : ''}>Closed</option>
-                    </select>
-                </div>
-            </div>
-            <div class="detail-section">
-                <div class="detail-label">Description:</div>
-                <div class="detail-value">
-                    <textarea id="edit-description" rows="4" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">${request.description}</textarea>
-                </div>
-            </div>
             ${request.ai_recommendation ? `
                 <div class="detail-section">
                     <div class="detail-label">AI Recommendation:</div>

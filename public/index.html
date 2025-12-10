@@ -395,13 +395,38 @@ The more details you provide, the faster we can resolve this issue." required></
     <div id="request-detail-modal" class="modal">
         <div class="modal-content large">
             <div class="modal-header">
-                <h3>Request Details</h3>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <button id="edit-request-btn" class="btn-secondary" style="font-size: 14px; padding: 6px 12px;">Edit Request</button>
-                    <span class="modal-close">&times;</span>
+                <div class="modal-title-section">
+                    <div class="modal-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 12l2 2 4-4"></path>
+                            <path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1h18z"></path>
+                            <path d="M3 12v7c0 .552.448 1 1 1h16c.552 0 1-.448 1-1v-7"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="modal-title">Request Details</h3>
+                        <p class="modal-subtitle">View and manage support request information</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: var(--space-3); align-items: center;">
+                    <button id="edit-request-btn" class="btn-secondary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                        Edit Request
+                    </button>
+                    <button class="modal-close">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
                 </div>
             </div>
-            <div id="request-detail-content"></div>
+            <div class="modal-body">
+                <div id="request-detail-content"></div>
+            </div>
         </div>
     </div>
 
