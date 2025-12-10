@@ -113,7 +113,7 @@ router.post('/', requireAgent, async (req, res) => {
 router.put('/:id', requireAgent, async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, solution, is_kb_article, requester_name, channel, description, severity } = req.body;
+    const { status, solution, is_kb_article, requester_name, channel, description, severity, category_id } = req.body;
 
     const updates = [];
     const params = [id];

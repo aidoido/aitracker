@@ -1030,26 +1030,40 @@ async function editRequestSolution(requestId) {
 
 async function handleSolutionSubmit(event) {
     event.preventDefault();
+    console.log('Solution form submitted');
 
     if (!currentSolutionRequestId) {
+        console.error('No currentSolutionRequestId set');
         showError('No request selected for solution update');
         return;
     }
 
+    console.log('Current solution request ID:', currentSolutionRequestId);
+
     const formData = new FormData(event.target);
     const solution = formData.get('solution')?.trim();
 
+    console.log('Raw solution from form:', formData.get('solution'));
+    console.log('Trimmed solution:', solution);
+
     if (!solution) {
+        console.log('Solution is empty, showing error');
         showError('Please enter a solution');
         return;
     }
 
     try {
+        console.log('Saving solution for request:', currentSolutionRequestId);
+        console.log('Solution content:', solution.substring(0, 100) + '...');
+
         const response = await fetch(`/api/requests/${currentSolutionRequestId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ solution })
         });
+
+        console.log('API response status:', response.status);
+        console.log('API response ok:', response.ok);
 
         if (response.ok) {
             showSuccess('Solution saved successfully');
@@ -1065,11 +1079,13 @@ async function handleSolutionSubmit(event) {
 
             currentSolutionRequestId = null;
         } else {
-            showError('Failed to save solution');
+            const errorData = await response.text();
+            console.error('API error response:', errorData);
+            showError(`Failed to save solution: ${response.status} ${response.statusText}`);
         }
     } catch (error) {
-        console.error('Failed to save solution:', error);
-        showError('Failed to save solution');
+        console.error('Failed to save solution - network error:', error);
+        showError(`Network error: ${error.message}`);
     }
 }
 
