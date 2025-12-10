@@ -59,6 +59,7 @@ function cacheElements() {
     elements.requestModal = document.getElementById('request-modal');
     elements.requestDetailModal = document.getElementById('request-detail-modal');
     elements.solutionModal = document.getElementById('solution-modal');
+    elements.kbDetailModal = document.getElementById('kb-detail-modal');
     elements.kbModal = document.getElementById('kb-modal');
 
     // Debug modal elements
@@ -66,6 +67,7 @@ function cacheElements() {
         requestModal: !!elements.requestModal,
         requestDetailModal: !!elements.requestDetailModal,
         solutionModal: !!elements.solutionModal,
+        kbDetailModal: !!elements.kbDetailModal,
         kbModal: !!elements.kbModal,
         requestDetailContent: !!document.getElementById('request-detail-content')
     });
@@ -1133,10 +1135,139 @@ async function createKbFromRequest(requestId) {
     }
 }
 
+// Global variable to track current KB article for editing
+let currentKbArticleId = null;
+
 async function openKbDetail(articleId) {
-    // This would open a detail modal for KB articles
-    // For now, just show an alert
-    showSuccess('KB article detail view coming soon');
+    console.log('Opening KB article detail for ID:', articleId);
+    currentKbArticleId = articleId;
+
+    try {
+        const response = await fetch(`/api/kb/${articleId}`);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch KB article: ${response.status}`);
+        }
+
+        const article = await response.json();
+        console.log('KB article data received:', article);
+
+        const content = `
+            <div class="kb-detail-view">
+                <div class="kb-detail-grid">
+                    <div class="kb-detail-section">
+                        <h4 class="kb-detail-section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z"></path>
+                            </svg>
+                            Article Information
+                        </h4>
+                        <div class="kb-detail-items">
+                            <div class="kb-detail-item">
+                                <span class="kb-detail-label">Created</span>
+                                <span class="kb-detail-value">${new Date(article.created_at).toLocaleDateString()} by ${article.created_by_username}</span>
+                            </div>
+                            <div class="kb-detail-item">
+                                <span class="kb-detail-label">Last Updated</span>
+                                <span class="kb-detail-value">${new Date(article.updated_at).toLocaleDateString()}</span>
+                            </div>
+                            <div class="kb-detail-item">
+                                <span class="kb-detail-label">Category</span>
+                                <span class="kb-detail-value">${article.category_name || 'Uncategorized'}</span>
+                            </div>
+                            <div class="kb-detail-item">
+                                <span class="kb-detail-label">Confidence Rating</span>
+                                <div class="confidence-rating">
+                                    <div class="confidence-stars">
+                                        ${Array.from({length: 5}, (_, i) =>
+                                            `<span class="star ${i < article.confidence ? 'filled' : ''}">★</span>`
+                                        ).join('')}
+                                    </div>
+                                    <span class="confidence-text">${article.confidence}/5</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="kb-detail-section full-width">
+                        <h4 class="kb-detail-section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
+                            Problem Summary
+                        </h4>
+                        <div class="kb-problem-content">
+                            ${article.problem_summary}
+                        </div>
+                    </div>
+
+                    <div class="kb-detail-section full-width">
+                        <h4 class="kb-detail-section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"></path>
+                            </svg>
+                            Solution
+                        </h4>
+                        <div class="kb-solution-content">
+                            ${article.solution.replace(/\n/g, '<br>')}
+                        </div>
+                    </div>
+
+                    <div class="kb-detail-section full-width">
+                        <h4 class="kb-detail-section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            Actions
+                        </h4>
+                        <div class="kb-actions-grid">
+                            <button class="btn-secondary" onclick="copyToClipboard('${article.solution.replace(/'/g, "\\'").replace(/\n/g, '\\n')}')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                                Copy Solution
+                            </button>
+                            ${currentUser.role !== 'viewer' ? `
+                                <button class="btn-danger" onclick="deleteKbArticle(${article.id}, '${article.problem_summary.replace(/'/g, "\\'").substring(0, 50)}...')">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="3,6 5,6 21,6"></polyline>
+                                        <path d="m19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2-2V6m3,0V4a2,2 0 0,1,2-2h4a2,2 0 0,1,2,2v2"></path>
+                                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                                    </svg>
+                                    Delete Article
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const contentElement = document.getElementById('kb-detail-content');
+        const modalElement = elements.kbDetailModal;
+
+        if (!contentElement || !modalElement) {
+            console.error('KB detail modal elements not found!');
+            showError('KB detail modal not available');
+            return;
+        }
+
+        contentElement.innerHTML = content;
+        modalElement.classList.add('show');
+
+        // Set up edit button
+        const editBtn = document.getElementById('edit-kb-btn');
+        if (editBtn) {
+            editBtn.onclick = () => toggleKbEditMode(article);
+        }
+
+    } catch (error) {
+        console.error('Failed to load KB article detail:', error);
+        showError(`Failed to load KB article: ${error.message}`);
+    }
 }
 
 // Toggle edit mode for request details
@@ -1401,8 +1532,176 @@ window.generateAIReply = generateAIReply;
 window.recategorizeRequest = recategorizeRequest;
 window.editRequestSolution = editRequestSolution;
 window.createKbFromRequest = createKbFromRequest;
+// KB article edit mode functions
+function toggleKbEditMode(article) {
+    const contentDiv = document.getElementById('kb-detail-content');
+    const editBtn = document.getElementById('edit-kb-btn');
+
+    if (contentDiv.classList.contains('edit-mode')) {
+        // Save changes
+        saveKbArticleChanges(article.id);
+    } else {
+        // Enter edit mode
+        enterKbEditMode(article);
+    }
+}
+
+async function enterKbEditMode(article) {
+    console.log('Entering KB edit mode for article:', article.id);
+    const contentDiv = document.getElementById('kb-detail-content');
+    const editBtn = document.getElementById('edit-kb-btn');
+
+    contentDiv.classList.add('edit-mode');
+    editBtn.textContent = 'Save Changes';
+    editBtn.className = 'btn-primary';
+
+    // Replace static content with editable fields
+    const editableContent = `
+        <div class="kb-edit-view">
+            <div class="kb-edit-grid">
+                <div class="kb-edit-section">
+                    <h4 class="kb-edit-section-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z"></path>
+                        </svg>
+                        Edit Article
+                    </h4>
+                    <div class="edit-row">
+                        <div class="form-group">
+                            <label for="edit-kb-category">Category</label>
+                            <select id="edit-kb-category">
+                                <option value="">Loading categories...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-kb-confidence">Confidence (1-5)</label>
+                            <select id="edit-kb-confidence">
+                                <option value="1" ${article.confidence === 1 ? 'selected' : ''}>1 - Low confidence</option>
+                                <option value="2" ${article.confidence === 2 ? 'selected' : ''}>2 - Somewhat confident</option>
+                                <option value="3" ${article.confidence === 3 ? 'selected' : ''}>3 - Moderately confident</option>
+                                <option value="4" ${article.confidence === 4 ? 'selected' : ''}>4 - Highly confident</option>
+                                <option value="5" ${article.confidence === 5 ? 'selected' : ''}>5 - Extremely confident</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="kb-edit-section full-width">
+                    <h4 class="kb-edit-section-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                        Problem Summary
+                    </h4>
+                    <div class="form-group">
+                        <label for="edit-kb-problem">Problem Summary <span class="required">*</span></label>
+                        <textarea id="edit-kb-problem" rows="3" placeholder="Brief summary of the problem..." required>${article.problem_summary}</textarea>
+                    </div>
+                </div>
+
+                <div class="kb-edit-section full-width">
+                    <h4 class="kb-edit-section-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"></path>
+                        </svg>
+                        Solution
+                    </h4>
+                    <div class="form-group">
+                        <label for="edit-kb-solution">Solution <span class="required">*</span></label>
+                        <textarea id="edit-kb-solution" rows="8" placeholder="Detailed solution steps..." required>${article.solution}</textarea>
+                        <div class="form-help">
+                            <small>💡 Provide clear, step-by-step instructions</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    contentDiv.innerHTML = editableContent;
+
+    // Load categories for the dropdown
+    await loadKbCategories();
+}
+
+async function saveKbArticleChanges(articleId) {
+    console.log('Saving KB article changes for ID:', articleId);
+
+    const problemSummary = document.getElementById('edit-kb-problem')?.value?.trim();
+    const solution = document.getElementById('edit-kb-solution')?.value?.trim();
+    const categoryId = document.getElementById('edit-kb-category')?.value;
+    const confidence = document.getElementById('edit-kb-confidence')?.value;
+
+    if (!problemSummary || !solution) {
+        showError('Problem summary and solution are required');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/kb/${articleId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                problem_summary: problemSummary,
+                solution: solution,
+                category_id: categoryId || null,
+                confidence: parseInt(confidence) || 3
+            })
+        });
+
+        if (response.ok) {
+            showSuccess('KB article updated successfully');
+            closeModal();
+
+            // Refresh the KB articles list
+            if (currentSection === 'kb') {
+                loadKbArticles();
+            }
+        } else {
+            const errorData = await response.text();
+            console.error('KB update error:', errorData);
+            showError('Failed to update KB article');
+        }
+    } catch (error) {
+        console.error('Failed to update KB article:', error);
+        showError('Failed to update KB article');
+    }
+}
+
+async function deleteKbArticle(articleId, title) {
+    if (!confirm(`Are you sure you want to delete the KB article "${title}"? This action cannot be undone.`)) {
+        return;
+    }
+
+    try {
+        showSuccess('Deleting KB article...');
+
+        const response = await fetch(`/api/kb/${articleId}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            showSuccess('KB article deleted successfully');
+            closeModal();
+
+            // Refresh the KB articles list
+            if (currentSection === 'kb') {
+                loadKbArticles();
+            }
+        } else {
+            showError('Failed to delete KB article');
+        }
+    } catch (error) {
+        console.error('Failed to delete KB article:', error);
+        showError('Failed to delete KB article');
+    }
+}
+
 window.openKbDetail = openKbDetail;
 window.exportToCsv = exportToCsv;
 window.closeModal = closeModal;
 window.copyToClipboard = copyToClipboard;
 window.deleteRequest = deleteRequest;
+window.deleteKbArticle = deleteKbArticle;

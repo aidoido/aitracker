@@ -1068,22 +1068,126 @@ body {
     margin-bottom: var(--space-4);
 }
 
+/* KB Detail & Edit Views */
+.kb-detail-view, .kb-edit-view {
+    padding: 0;
+}
+
+.kb-detail-grid, .kb-edit-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+}
+
+.kb-detail-section, .kb-edit-section {
+    padding: var(--space-6);
+    background: var(--color-gray-50);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-gray-200);
+}
+
+.kb-detail-section.full-width, .kb-edit-section.full-width {
+    grid-column: 1 / -1;
+}
+
+.kb-detail-section-title, .kb-edit-section-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-gray-900);
+    margin: 0 0 var(--space-4) 0;
+}
+
+.kb-detail-items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.kb-detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-3) var(--space-4);
+    background: white;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-gray-200);
+}
+
+.kb-detail-label {
+    font-weight: 500;
+    color: var(--color-gray-600);
+    font-size: 14px;
+}
+
+.kb-detail-value {
+    font-weight: 600;
+    color: var(--color-gray-900);
+    text-align: right;
+}
+
+.confidence-rating {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.confidence-stars {
+    display: flex;
+    gap: 2px;
+}
+
+.star {
+    color: var(--color-gray-300);
+    font-size: 14px;
+}
+
+.star.filled {
+    color: #fbbf24;
+}
+
+.confidence-text {
+    font-weight: 500;
+    color: var(--color-gray-700);
+    font-size: 14px;
+}
+
+.kb-problem-content, .kb-solution-content {
+    padding: var(--space-4);
+    background: white;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-gray-200);
+    line-height: 1.6;
+}
+
+.kb-solution-content {
+    white-space: pre-wrap;
+}
+
+.kb-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-3);
+}
+
 @media (max-width: 768px) {
     .edit-row {
         grid-template-columns: 1fr;
     }
 
-    .action-buttons-grid {
+    .action-buttons-grid, .kb-actions-grid {
         grid-template-columns: 1fr;
     }
 
-    .detail-item {
+    .detail-item, .kb-detail-item {
         flex-direction: column;
         align-items: flex-start;
         gap: var(--space-1);
     }
 
-    .detail-value {
+    .detail-value, .kb-detail-value {
         text-align: left;
     }
 }
