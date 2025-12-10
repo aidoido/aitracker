@@ -430,6 +430,79 @@ The more details you provide, the faster we can resolve this issue." required></
         </div>
     </div>
 
+    <!-- Solution Modal -->
+    <div id="solution-modal" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <div class="modal-title-section">
+                    <div class="modal-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="modal-title">Add/Edit Solution</h3>
+                        <p class="modal-subtitle">Provide a detailed resolution for this support request</p>
+                    </div>
+                </div>
+                <button class="modal-close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <form id="solution-form" class="solution-form">
+                    <div class="form-grid">
+                        <div class="form-section full-width">
+                            <h4 class="form-section-title">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z"></path>
+                                </svg>
+                                Solution Details
+                            </h4>
+                            <div class="form-group">
+                                <label for="solution-text">
+                                    Solution Description <span class="required">*</span>
+                                </label>
+                                <textarea id="solution-text" name="solution" rows="8" placeholder="Please provide a detailed solution that resolves the issue. Include:
+
+• Step-by-step resolution instructions
+• Any workarounds or temporary fixes
+• Prevention tips for similar issues
+• Links to relevant documentation
+• Contact information for further assistance
+
+The solution should be clear enough for other support agents to follow." required></textarea>
+                                <div class="form-help">
+                                    <small>💡 A good solution helps prevent the same issue from recurring</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" onclick="closeModal()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn-primary">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"></path>
+                            </svg>
+                            Save Solution
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- KB Article Modal -->
     <div id="kb-modal" class="modal">
         <div class="modal-content large">

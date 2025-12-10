@@ -58,12 +58,14 @@ function cacheElements() {
     // Modals
     elements.requestModal = document.getElementById('request-modal');
     elements.requestDetailModal = document.getElementById('request-detail-modal');
+    elements.solutionModal = document.getElementById('solution-modal');
     elements.kbModal = document.getElementById('kb-modal');
 
     // Debug modal elements
     console.log('Modal elements loaded:', {
         requestModal: !!elements.requestModal,
         requestDetailModal: !!elements.requestDetailModal,
+        solutionModal: !!elements.solutionModal,
         kbModal: !!elements.kbModal,
         requestDetailContent: !!document.getElementById('request-detail-content')
     });
@@ -107,6 +109,10 @@ function setupEventListeners() {
 
     // Forms
     elements.requestForm.addEventListener('submit', handleRequestSubmit);
+    elements.solutionForm = document.getElementById('solution-form');
+    if (elements.solutionForm) {
+        elements.solutionForm.addEventListener('submit', handleSolutionSubmit);
+    }
     elements.kbForm.addEventListener('submit', handleKbSubmit);
 
     // Modal close
@@ -977,29 +983,93 @@ function showSuccess(message) {
     setTimeout(() => successDiv.remove(), 3000);
 }
 
+// Global variable to track current request for solution editing
+let currentSolutionRequestId = null;
+
 // Additional request management functions
 async function editRequestSolution(requestId) {
-    const solution = prompt('Enter the solution for this request:');
-    if (solution && solution.trim()) {
-        try {
-            const response = await fetch(`/api/requests/${requestId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ solution: solution.trim() })
-            });
+    console.log('Opening solution modal for request:', requestId);
+    currentSolutionRequestId = requestId;
 
-            if (response.ok) {
-                showSuccess('Solution added successfully');
-                closeModal();
-                loadDashboard();
-                if (currentSection === 'requests') loadRequests();
-            } else {
-                showError('Failed to add solution');
-            }
-        } catch (error) {
-            console.error('Failed to add solution:', error);
-            showError('Failed to add solution');
+    try {
+        // Fetch current request data to check if solution exists
+        const response = await fetch(`/api/requests/${requestId}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch request data');
         }
+
+        const request = await response.json();
+
+        // Populate the solution form with existing data
+        const solutionTextarea = document.getElementById('solution-text');
+        if (solutionTextarea) {
+            solutionTextarea.value = request.solution || '';
+        }
+
+        // Update modal title based on whether solution exists
+        const modalTitle = document.querySelector('#solution-modal .modal-title');
+        if (modalTitle) {
+            modalTitle.textContent = request.solution ? 'Edit Solution' : 'Add Solution';
+        }
+
+        const modalSubtitle = document.querySelector('#solution-modal .modal-subtitle');
+        if (modalSubtitle) {
+            modalSubtitle.textContent = request.solution ?
+                'Update the resolution for this support request' :
+                'Provide a detailed resolution for this support request';
+        }
+
+        // Show the modal
+        elements.solutionModal.classList.add('show');
+
+    } catch (error) {
+        console.error('Failed to open solution modal:', error);
+        showError('Failed to open solution editor');
+    }
+}
+
+async function handleSolutionSubmit(event) {
+    event.preventDefault();
+
+    if (!currentSolutionRequestId) {
+        showError('No request selected for solution update');
+        return;
+    }
+
+    const formData = new FormData(event.target);
+    const solution = formData.get('solution')?.trim();
+
+    if (!solution) {
+        showError('Please enter a solution');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/requests/${currentSolutionRequestId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ solution })
+        });
+
+        if (response.ok) {
+            showSuccess('Solution saved successfully');
+            closeModal();
+
+            // Refresh the current view
+            if (currentSection === 'requests') {
+                loadRequests();
+            } else if (elements.requestDetailModal && elements.requestDetailModal.classList.contains('show')) {
+                // Refresh the request detail view
+                openRequestDetail(currentSolutionRequestId);
+            }
+
+            currentSolutionRequestId = null;
+        } else {
+            showError('Failed to save solution');
+        }
+    } catch (error) {
+        console.error('Failed to save solution:', error);
+        showError('Failed to save solution');
     }
 }
 
