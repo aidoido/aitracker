@@ -69,6 +69,7 @@ const createTables = async () => {
         problem_summary TEXT NOT NULL,
         solution TEXT NOT NULL,
         category_id INTEGER REFERENCES categories(id),
+        tags TEXT[], -- Array of tags for better searchability
         confidence INTEGER DEFAULT 1 CHECK (confidence >= 1 AND confidence <= 5),
         created_by INTEGER REFERENCES users(id),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

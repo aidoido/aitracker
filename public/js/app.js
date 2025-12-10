@@ -876,7 +876,13 @@ function renderKbArticles(articles) {
                     <span>•</span>
                     <span>${new Date(article.updated_at).toLocaleDateString()}</span>
                     ${article.category_name ? `<span>•</span><span>${article.category_name}</span>` : ''}
-            </div>
+                </div>
+                ${article.tags && article.tags.length > 0 ? `
+                <div class="kb-tags">
+                    ${article.tags.slice(0, 3).map(tag => `<span class="kb-tag">${tag}</span>`).join('')}
+                    ${article.tags.length > 3 ? `<span class="kb-tag-more">+${article.tags.length - 3}</span>` : ''}
+                </div>
+                ` : ''}
             </div>
         </div>
     `).join('');
@@ -898,14 +904,16 @@ function openKbModal(articleId = null) {
     elements.kbModal.classList.add('show');
 }
 
-async function loadKbCategories() {
+async function loadKbCategories(selector = 'kb-category') {
     try {
         const response = await fetch('/api/dashboard/categories');
         const categories = await response.json();
 
-        const select = document.getElementById('kb-category');
-        select.innerHTML = '<option value="">Select Category</option>' +
-            categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('');
+        const select = document.getElementById(selector);
+        if (select) {
+            select.innerHTML = '<option value="">Select Category</option>' +
+                categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('');
+        }
     } catch (error) {
         console.error('Failed to load categories:', error);
     }
@@ -915,10 +923,19 @@ async function handleKbSubmit(e) {
     e.preventDefault();
 
     const formData = new FormData(e.target);
+
+    // Process tags
+    let tags = [];
+    const tagsInput = formData.get('kb-tags')?.trim();
+    if (tagsInput) {
+        tags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+    }
+
     const articleData = {
         problem_summary: formData.get('kb-problem'),
         solution: formData.get('kb-solution'),
         category_id: formData.get('kb-category') || null,
+        tags: tags,
         confidence: parseInt(formData.get('kb-confidence')) || 3
     };
 
@@ -1174,6 +1191,14 @@ async function openKbDetail(articleId) {
                                 <span class="kb-detail-label">Category</span>
                                 <span class="kb-detail-value">${article.category_name || 'Uncategorized'}</span>
                             </div>
+                            ${article.tags && article.tags.length > 0 ? `
+                            <div class="kb-detail-item">
+                                <span class="kb-detail-label">Tags</span>
+                                <div class="tags-display">
+                                    ${article.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                                </div>
+                            </div>
+                            ` : ''}
                             <div class="kb-detail-item">
                                 <span class="kb-detail-label">Confidence Rating</span>
                                 <div class="confidence-rating">
@@ -1584,6 +1609,13 @@ async function enterKbEditMode(article) {
                             </select>
                         </div>
                     </div>
+                    <div class="form-group">
+                        <label for="edit-kb-tags">Tags (comma-separated)</label>
+                        <input type="text" id="edit-kb-tags" value="${article.tags ? article.tags.join(', ') : ''}" placeholder="e.g. oracle, fusion, login, error">
+                        <div class="form-help">
+                            <small>💡 Add relevant tags to make this article easier to find</small>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="kb-edit-section full-width">
@@ -1623,7 +1655,7 @@ async function enterKbEditMode(article) {
     contentDiv.innerHTML = editableContent;
 
     // Load categories for the dropdown
-    await loadKbCategories();
+    await loadKbCategories('edit-kb-category');
 }
 
 async function saveKbArticleChanges(articleId) {
@@ -1633,6 +1665,7 @@ async function saveKbArticleChanges(articleId) {
     const solution = document.getElementById('edit-kb-solution')?.value?.trim();
     const categoryId = document.getElementById('edit-kb-category')?.value;
     const confidence = document.getElementById('edit-kb-confidence')?.value;
+    const tagsInput = document.getElementById('edit-kb-tags')?.value?.trim();
 
     if (!problemSummary || !solution) {
         showError('Problem summary and solution are required');
@@ -1640,6 +1673,12 @@ async function saveKbArticleChanges(articleId) {
     }
 
     try {
+        // Process tags
+        let tags = [];
+        if (tagsInput) {
+            tags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+        }
+
         const response = await fetch(`/api/kb/${articleId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -1647,6 +1686,7 @@ async function saveKbArticleChanges(articleId) {
                 problem_summary: problemSummary,
                 solution: solution,
                 category_id: categoryId || null,
+                tags: tags,
                 confidence: parseInt(confidence) || 3
             })
         });

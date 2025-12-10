@@ -1154,6 +1154,43 @@ body {
     font-size: 14px;
 }
 
+.tags-display {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+.tag {
+    background: var(--color-primary-100);
+    color: var(--color-primary-700);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-md);
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid var(--color-primary-200);
+}
+
+.kb-tags {
+    display: flex;
+    gap: var(--space-1);
+    margin-top: var(--space-2);
+    flex-wrap: wrap;
+}
+
+.kb-tag, .kb-tag-more {
+    background: var(--color-gray-100);
+    color: var(--color-gray-600);
+    padding: 2px var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.kb-tag-more {
+    background: var(--color-gray-200);
+    color: var(--color-gray-700);
+}
+
 .kb-problem-content, .kb-solution-content {
     padding: var(--space-4);
     background: white;

@@ -74,7 +74,7 @@ router.get('/:id', async (req, res) => {
 // Create KB article (agents only)
 router.post('/', requireAgent, async (req, res) => {
   try {
-    const { problem_summary, solution, category_id } = req.body;
+    const { problem_summary, solution, category_id, tags } = req.body;
 
     if (!problem_summary || !solution) {
       return res.status(400).json({ error: 'Problem summary and solution are required' });
@@ -89,11 +89,21 @@ router.post('/', requireAgent, async (req, res) => {
       console.warn('AI KB improvement failed:', aiError.message);
     }
 
+    // Process tags - convert to array and clean
+    let processedTags = [];
+    if (tags) {
+      if (Array.isArray(tags)) {
+        processedTags = tags.map(tag => tag.trim()).filter(tag => tag.length > 0);
+      } else if (typeof tags === 'string') {
+        processedTags = tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+      }
+    }
+
     const result = await pool.query(`
-      INSERT INTO kb_articles (problem_summary, solution, category_id, confidence, created_by)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO kb_articles (problem_summary, solution, category_id, tags, confidence, created_by)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
-    `, [improved.improved_problem, improved.improved_solution, category_id, improved.confidence, req.session.userId]);
+    `, [improved.improved_problem, improved.improved_solution, category_id, processedTags, improved.confidence, req.session.userId]);
 
     res.status(201).json(result.rows[0]);
   } catch (error) {
@@ -106,7 +116,7 @@ router.post('/', requireAgent, async (req, res) => {
 router.put('/:id', requireAgent, async (req, res) => {
   try {
     const { id } = req.params;
-    const { problem_summary, solution, category_id, confidence } = req.body;
+    const { problem_summary, solution, category_id, confidence, tags } = req.body;
 
     const updates = [];
     const params = [id];
@@ -125,6 +135,18 @@ router.put('/:id', requireAgent, async (req, res) => {
     if (category_id !== undefined) {
       updates.push(`category_id = $${++paramCount}`);
       params.push(category_id);
+    }
+
+    if (tags !== undefined) {
+      // Process tags - convert to array and clean
+      let processedTags = [];
+      if (Array.isArray(tags)) {
+        processedTags = tags.map(tag => tag.trim()).filter(tag => tag.length > 0);
+      } else if (typeof tags === 'string') {
+        processedTags = tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+      }
+      updates.push(`tags = $${++paramCount}`);
+      params.push(processedTags);
     }
 
     if (confidence !== undefined) {
@@ -188,6 +210,7 @@ router.get('/search/:query', async (req, res) => {
       FROM kb_articles kb
       LEFT JOIN categories c ON kb.category_id = c.id
       WHERE to_tsvector('english', kb.problem_summary || ' ' || kb.solution) @@ plainto_tsquery('english', $1)
+         OR EXISTS (SELECT 1 FROM unnest(kb.tags) AS tag WHERE tag ILIKE '%' || $1 || '%')
       ORDER BY rank DESC, kb.confidence DESC
       LIMIT 20
     `, [query]);
