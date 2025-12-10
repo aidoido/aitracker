@@ -890,8 +890,16 @@ function renderKbArticles(articles) {
 
 // KB modal functions
 function openKbModal(articleId = null) {
-    const title = articleId ? 'Edit KB Article' : 'New KB Article';
-    document.getElementById('kb-modal-title').textContent = title;
+    const title = articleId ? 'Edit Knowledge Base Article' : 'Create Knowledge Base Article';
+    const subtitle = articleId ?
+        'Update the article information and solution' :
+        'Add a new article to help resolve future support issues';
+
+    const modalTitle = document.querySelector('#kb-modal .modal-title');
+    const modalSubtitle = document.querySelector('#kb-modal .modal-subtitle');
+
+    if (modalTitle) modalTitle.textContent = title;
+    if (modalSubtitle) modalSubtitle.textContent = subtitle;
 
     if (articleId) {
         // Load existing article for editing
