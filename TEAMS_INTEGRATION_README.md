@@ -4,7 +4,7 @@ This guide shows how to integrate Microsoft Teams with your Support Tracker to a
 
 ## 🎯 Integration Overview
 
-**Teams → Support Tracker**: Automatically create support tickets when users send messages in Teams channels.
+**Teams → Support Tracker**: Automatically create support tickets when users send direct messages (DMs) in Teams.
 
 ## 🚀 Setup Instructions
 
@@ -19,10 +19,16 @@ This guide shows how to integrate Microsoft Teams with your Support Tracker to a
 
 ```
 Trigger Settings:
-- Team: [Select your support team]
-- Channel: [Select the channel for support requests]
+- Scopes: Personal (for direct messages only) - NOT Team/GroupChat
 - Keywords: support, help, issue, ticket (optional - leave empty for all messages)
 ```
+
+**Important:** Select **Personal** scope to trigger only on direct messages (DMs) with users, not channel messages.
+
+**Why Personal scope?**
+- Direct messages are more private for support requests
+- Avoids cluttering team channels with automated responses
+- Users can have confidential conversations with support
 
 ### Step 3: Add HTTP Action
 
