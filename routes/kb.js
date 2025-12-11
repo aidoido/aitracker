@@ -29,8 +29,8 @@ router.get('/', async (req, res) => {
     }
 
     if (search) {
-      conditions.push(`(kb.problem_summary ILIKE $${params.length + 1} OR kb.solution ILIKE $${params.length + 1})`);
-      params.push(`%${search}%`);
+      conditions.push(`(kb.problem_summary ILIKE $${params.length + 1} OR kb.solution ILIKE $${params.length + 1} OR kb.tags::text ILIKE $${params.length + 2})`);
+      params.push(`%${search}%`, `%${search}%`);
     }
 
     if (conditions.length > 0) {

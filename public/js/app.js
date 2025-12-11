@@ -42,6 +42,9 @@ function cacheElements() {
     elements.todayRequests = document.getElementById('today-requests');
     elements.openRequests = document.getElementById('open-requests');
     elements.closedRequests = document.getElementById('closed-requests');
+    elements.dashboardSearchInput = document.getElementById('dashboard-search-input');
+    elements.dashboardStatusFilter = document.getElementById('dashboard-status-filter');
+    elements.recentRequestsList = document.getElementById('recent-requests-list');
 
     // Requests elements
     elements.newRequestBtn = document.getElementById('new-request-btn');
@@ -108,6 +111,33 @@ function setupEventListeners() {
     // KB
     elements.newKbBtn.addEventListener('click', () => openKbModal());
     elements.kbSearchInput.addEventListener('input', debounce(loadKbArticles, 300));
+
+    // Dashboard
+    if (elements.dashboardSearchInput) {
+        elements.dashboardSearchInput.addEventListener('input', debounce(loadRecentRequests, 300));
+    }
+    if (elements.dashboardStatusFilter) {
+        elements.dashboardStatusFilter.addEventListener('change', loadRecentRequests);
+    }
+
+    // Metric card clicks for drill-down
+    document.querySelectorAll('.metric-card.clickable').forEach(card => {
+        card.addEventListener('click', () => {
+            const status = card.getAttribute('data-status');
+            const filter = card.getAttribute('data-filter');
+
+            if (status) {
+                elements.dashboardStatusFilter.value = status;
+            } else if (filter === 'today') {
+                // Special handling for today's requests
+                elements.dashboardStatusFilter.value = '';
+            } else {
+                elements.dashboardStatusFilter.value = '';
+            }
+
+            loadRecentRequests();
+        });
+    });
 
     // Forms
     elements.requestForm.addEventListener('submit', handleRequestSubmit);
@@ -199,20 +229,42 @@ function switchSection(sectionName) {
     }
 }
 
-// Dashboard functions
+    // Dashboard functions
 async function loadDashboard() {
     try {
         const response = await fetch('/api/dashboard/metrics');
         const data = await response.json();
 
-        elements.totalRequests.textContent = data.total;
-        elements.todayRequests.textContent = data.todayCount;
-        elements.openRequests.textContent = data.statusCounts.open;
-        elements.closedRequests.textContent = data.statusCounts.closed;
+        elements.totalRequests.textContent = data.total || 0;
+        elements.todayRequests.textContent = data.todayCount || 0;
+        elements.openRequests.textContent = data.statusCounts.open || 0;
+        elements.closedRequests.textContent = data.statusCounts.closed || 0;
+
+        await loadRecentRequests();
         loadChartData();
     } catch (error) {
         console.error('Failed to load dashboard:', error);
         showError('Failed to load dashboard data');
+    }
+}
+
+// Load recent requests for dashboard
+async function loadRecentRequests() {
+    try {
+        const search = elements.dashboardSearchInput ? elements.dashboardSearchInput.value : '';
+        const status = elements.dashboardStatusFilter ? elements.dashboardStatusFilter.value : '';
+
+        let url = '/api/requests?limit=10&';
+        if (status) url += `status=${status}&`;
+        if (search) url += `search=${encodeURIComponent(search)}&`;
+
+        const response = await fetch(url);
+        const requests = await response.json();
+
+        renderRecentRequests(requests);
+    } catch (error) {
+        console.error('Failed to load recent requests:', error);
+        showError('Failed to load recent requests');
     }
 }
 
@@ -441,6 +493,28 @@ function renderRequests(requests) {
             </div>
             </div>
             <div class="request-status status-${request.status}">${request.status.replace('_', ' ')}</div>
+        </div>
+    `).join('');
+}
+
+// Render recent requests for dashboard
+function renderRecentRequests(requests) {
+    if (!elements.recentRequestsList) return;
+
+    if (!requests || requests.length === 0) {
+        elements.recentRequestsList.innerHTML = '<div style="padding: var(--space-6); text-align: center; color: var(--color-gray-500);">No recent requests</div>';
+        return;
+    }
+
+    elements.recentRequestsList.innerHTML = requests.map(request => `
+        <div class="recent-request-item" onclick="openRequestDetail(${request.id})">
+            <div class="recent-request-content">
+                <div class="recent-request-title">${request.requester_name} - ${request.category_name || 'Uncategorized'}</div>
+                <div class="recent-request-meta">
+                    ${new Date(request.created_at).toLocaleDateString()} • ${request.channel} • ${request.created_by_username}
+                </div>
+            </div>
+            <div class="recent-request-status status-${request.status}">${request.status.replace('_', ' ')}</div>
         </div>
     `).join('');
 }

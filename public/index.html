@@ -110,8 +110,21 @@
             <!-- Dashboard -->
             <div id="dashboard-section" class="section active">
                 <div class="dashboard-content">
+                    <div class="dashboard-header">
+                        <h3>Dashboard</h3>
+                        <div class="dashboard-search">
+                            <input type="text" id="dashboard-search-input" placeholder="Search requests..." class="search-input">
+                            <select id="dashboard-status-filter" class="status-filter">
+                                <option value="">All Status</option>
+                                <option value="open">Open</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="closed">Closed</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="metrics-grid">
-                        <div class="metric-card">
+                        <div class="metric-card clickable" data-filter="">
                             <div class="metric-icon">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -125,7 +138,7 @@
                             </div>
                         </div>
 
-                        <div class="metric-card">
+                        <div class="metric-card clickable" data-filter="today">
                             <div class="metric-icon">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <circle cx="12" cy="12" r="10"></circle>
@@ -138,7 +151,7 @@
                             </div>
                         </div>
 
-                        <div class="metric-card">
+                        <div class="metric-card clickable" data-status="open">
                             <div class="metric-icon">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -154,7 +167,7 @@
                             </div>
                         </div>
 
-                        <div class="metric-card">
+                        <div class="metric-card clickable" data-status="closed">
                             <div class="metric-icon">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <polyline points="20,6 9,17 4,12"></polyline>
@@ -164,6 +177,13 @@
                                 <h3 class="metric-value" id="closed-requests">-</h3>
                                 <p class="metric-label">Closed Requests</p>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="recent-requests-section">
+                        <h4>Recent Requests</h4>
+                        <div id="recent-requests-list" class="recent-requests-list">
+                            <!-- Recent requests will be populated here -->
                         </div>
                     </div>
 
