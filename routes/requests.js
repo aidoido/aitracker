@@ -38,7 +38,7 @@ router.post('/teams/create', async (req, res) => {
 
     const ticketValues = [
       userName || 'Teams User',
-      'teams',
+      'teams_chat',  // Changed from 'teams' to allowed value
       message || 'Ticket created from Teams',
       'open',
       'medium',
