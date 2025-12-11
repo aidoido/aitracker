@@ -8,6 +8,8 @@ const router = express.Router();
 // Teams integration endpoint (no auth required)
 router.post('/teams/create', async (req, res) => {
   try {
+    console.log('🔄 Teams webhook called with payload:', JSON.stringify(req.body, null, 2));
+
     const {
       message,
       userName,
@@ -18,9 +20,13 @@ router.post('/teams/create', async (req, res) => {
       teamName
     } = req.body;
 
+    console.log('👤 Looking for admin user...');
     // Get admin user for created_by (since this is automated)
     const adminResult = await pool.query('SELECT id FROM users WHERE role = $1 LIMIT 1', ['admin']);
+    console.log('👤 Admin user result:', adminResult.rows);
+
     const createdBy = adminResult.rows[0]?.id || 1;
+    console.log('👤 Using createdBy ID:', createdBy);
 
     // Create ticket from Teams message
     const ticketQuery = `
@@ -61,9 +67,18 @@ router.post('/teams/create', async (req, res) => {
 
   } catch (error) {
     console.error('❌ Error creating ticket from Teams:', error);
+    console.error('❌ Error details:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+      hint: error.hint,
+      stack: error.stack
+    });
+
     res.status(500).json({
       success: false,
-      error: 'Failed to create ticket from Teams'
+      error: 'Failed to create ticket from Teams',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
