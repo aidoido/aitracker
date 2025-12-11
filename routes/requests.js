@@ -5,7 +5,70 @@ const aiService = require('../utils/ai-service');
 
 const router = express.Router();
 
-// Apply auth middleware to all routes
+// Teams integration endpoint (no auth required)
+router.post('/teams/create', async (req, res) => {
+  try {
+    const {
+      message,
+      userName,
+      userId,
+      channelId,
+      teamId,
+      channelName,
+      teamName
+    } = req.body;
+
+    // Get admin user for created_by (since this is automated)
+    const adminResult = await pool.query('SELECT id FROM users WHERE role = $1 LIMIT 1', ['admin']);
+    const createdBy = adminResult.rows[0]?.id || 1;
+
+    // Create ticket from Teams message
+    const ticketQuery = `
+      INSERT INTO support_requests
+      (requester_name, channel, description, status, severity, created_by, teams_user_id, teams_channel_id, teams_team_id, teams_message)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      RETURNING id
+    `;
+
+    const ticketValues = [
+      userName || 'Teams User',
+      'teams',
+      message || 'Ticket created from Teams',
+      'open',
+      'medium',
+      createdBy,
+      userId,
+      channelId,
+      teamId,
+      JSON.stringify({
+        channelName,
+        teamName,
+        originalMessage: message
+      })
+    ];
+
+    const ticketResult = await pool.query(ticketQuery, ticketValues);
+    const ticketId = ticketResult.rows[0].id;
+
+    console.log(`✅ Ticket #${ticketId} created from Teams by ${userName}`);
+
+    res.json({
+      success: true,
+      ticketId,
+      message: `Ticket #${ticketId} created successfully from Teams`,
+      ticketUrl: `${process.env.APP_URL || 'http://localhost:3000'}#requests`
+    });
+
+  } catch (error) {
+    console.error('❌ Error creating ticket from Teams:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create ticket from Teams'
+    });
+  }
+});
+
+// Apply auth middleware to all other routes
 router.use(requireAuth);
 
 // Get all support requests
@@ -365,69 +428,6 @@ router.post('/:id/generate-reply', requireAgent, async (req, res) => {
       error: errorMessage,
       details: errorDetails,
       originalError: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
-});
-
-// Teams integration endpoint
-router.post('/teams/create', async (req, res) => {
-  try {
-    const {
-      message,
-      userName,
-      userId,
-      channelId,
-      teamId,
-      channelName,
-      teamName
-    } = req.body;
-
-    // Get admin user for created_by (since this is automated)
-    const adminResult = await pool.query('SELECT id FROM users WHERE role = $1 LIMIT 1', ['admin']);
-    const createdBy = adminResult.rows[0]?.id || 1;
-
-    // Create ticket from Teams message
-    const ticketQuery = `
-      INSERT INTO support_requests
-      (requester_name, channel, description, status, severity, created_by, teams_user_id, teams_channel_id, teams_team_id, teams_message)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-      RETURNING id
-    `;
-
-    const ticketValues = [
-      userName || 'Teams User',
-      'teams',
-      message || 'Ticket created from Teams',
-      'open',
-      'medium',
-      createdBy,
-      userId,
-      channelId,
-      teamId,
-      JSON.stringify({
-        channelName,
-        teamName,
-        originalMessage: message
-      })
-    ];
-
-    const ticketResult = await pool.query(ticketQuery, ticketValues);
-    const ticketId = ticketResult.rows[0].id;
-
-    console.log(`✅ Ticket #${ticketId} created from Teams by ${userName}`);
-
-    res.json({
-      success: true,
-      ticketId,
-      message: `Ticket #${ticketId} created successfully from Teams`,
-      ticketUrl: `${process.env.APP_URL || 'http://localhost:3000'}#requests`
-    });
-
-  } catch (error) {
-    console.error('❌ Error creating ticket from Teams:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to create ticket from Teams'
     });
   }
 });
