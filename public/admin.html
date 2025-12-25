@@ -329,6 +329,10 @@
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
 
+    .summary-controls .form-group {
+        margin-bottom: 0;
+    }
+
     .summary-result {
         background: white;
         border-radius: 12px;
@@ -482,6 +486,16 @@
         .summary-controls {
             flex-direction: column;
             align-items: stretch;
+            gap: 12px;
+        }
+
+        .summary-controls .form-group {
+            margin-bottom: 0;
+        }
+
+        .summary-controls .form-group:last-child {
+            display: flex;
+            justify-content: flex-end;
         }
     }
 
@@ -676,12 +690,14 @@
                             <label for="summary-date">Select Date:</label>
                             <input type="date" id="summary-date" value="">
                         </div>
-                        <button id="generate-summary-btn" class="btn-primary">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"></path>
-                            </svg>
-                            Generate Summary
-                        </button>
+                        <div class="form-group" style="display: flex; align-items: end;">
+                            <button id="generate-summary-btn" class="btn-primary">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"></path>
+                                </svg>
+                                Generate Summary
+                            </button>
+                        </div>
                     </div>
 
                     <div id="summary-result" class="summary-result" style="display: none;">
@@ -924,6 +940,8 @@
             // Load section data
             if (sectionName === 'ai-settings') {
                 loadAISettings();
+            } else if (sectionName === 'daily-summary') {
+                // Daily summary doesn't need initial loading
             } else if (sectionName === 'categories') {
                 loadCategories();
             } else if (sectionName === 'users') {
@@ -1175,9 +1193,6 @@
             });
             currentUserId = null;
         }
-
-        // Tab switching with daily summary
-        document.getElementById('daily-summary-tab').addEventListener('click', () => switchAdminTab('daily-summary'));
 
         // Daily Summary
         document.getElementById('generate-summary-btn').addEventListener('click', generateDailySummary);
