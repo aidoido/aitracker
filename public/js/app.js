@@ -105,7 +105,14 @@ function setupEventListeners() {
         }
     });
 
-    elements.logoutBtn.addEventListener('click', logout);
+    // Handle both sidebar logout (if exists) and dropdown logout
+    if (elements.logoutBtn) {
+        elements.logoutBtn.addEventListener('click', logout);
+    }
+    const dropdownLogoutBtn = document.getElementById('dropdown-logout-btn');
+    if (dropdownLogoutBtn) {
+        dropdownLogoutBtn.addEventListener('click', logout);
+    }
 
     // Requests
     elements.newRequestBtn.addEventListener('click', () => openRequestModal());

@@ -1,30 +1,22 @@
-/* Modern SaaS Design System */
+/* Clean Notion-Style Design System */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-    /* Colors */
-    --color-gray-50: #f8fafc;
-    --color-gray-100: #f1f5f9;
-    --color-gray-200: #e2e8f0;
-    --color-gray-300: #cbd5e1;
-    --color-gray-400: #94a3b8;
-    --color-gray-500: #64748b;
-    --color-gray-600: #475569;
-    --color-gray-700: #334155;
-    --color-gray-800: #1e293b;
-    --color-gray-900: #0f172a;
+    /* Notion-inspired Color Palette */
+    --color-white: #ffffff;
+    --color-gray-50: #f7f6f3;
+    --color-gray-100: #e1e5e9;
+    --color-gray-200: #d1d5db;
+    --color-gray-300: #9ca3af;
+    --color-gray-400: #787774;
+    --color-gray-500: #37352f;
+    --color-black: #000000;
 
-    /* Primary Colors */
-    --color-primary-50: #eef2ff;
-    --color-primary-100: #e0e7ff;
-    --color-primary-500: #6366f1;
-    --color-primary-600: #4f46e5;
-    --color-primary-700: #4338ca;
-
-    /* Status Colors */
-    --color-success: #10b981;
-    --color-warning: #f59e0b;
-    --color-error: #ef4444;
+    /* Status Colors (Subtle) */
+    --color-success: #2e7d32;
+    --color-warning: #ed6c02;
+    --color-error: #d32f2f;
+    --color-info: #0288d1;
 
     /* Spacing */
     --space-1: 0.25rem;
@@ -38,16 +30,16 @@
     --space-12: 3rem;
 
     /* Border Radius */
-    --radius-sm: 0.375rem;
-    --radius-md: 0.5rem;
-    --radius-lg: 0.75rem;
-    --radius-xl: 1rem;
+    --radius-sm: 3px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 12px;
 
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    /* Subtle Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.06);
+    --shadow-xl: 0 8px 16px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.08);
 }
 
 * {
@@ -57,12 +49,13 @@
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-size: 14px;
-    line-height: 1.5;
-    color: var(--color-gray-700);
-    background-color: var(--color-gray-50);
+    line-height: 1.6;
+    color: var(--color-gray-500);
+    background-color: var(--color-white);
     margin: 0;
     padding: 0;
     overflow-x: hidden;
+    font-weight: 400;
 }
 
 /* Layout */
@@ -128,7 +121,7 @@ body {
 }
 
 .nav-item.active {
-    background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-600));
+    background: var(--color-gray-500);
     color: white;
     box-shadow: var(--shadow-md);
 }
@@ -241,7 +234,7 @@ body {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-600));
+    background: var(--color-gray-500);
     border: none;
     cursor: pointer;
     display: flex;
@@ -252,13 +245,12 @@ body {
 }
 
 .user-avatar:hover {
-    transform: scale(1.05);
-    box-shadow: var(--shadow-md);
+    background: var(--color-gray-400);
 }
 
 /* Buttons */
 .btn-primary {
-    background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-600));
+    background: var(--color-gray-500);
     color: white;
     border: none;
     padding: var(--space-3) var(--space-6);
@@ -276,7 +268,7 @@ body {
 .btn-primary:hover {
     transform: translateY(-1px);
     box-shadow: var(--shadow-md);
-    background: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-700));
+    background: var(--color-black);
 }
 
 .btn-secondary {
@@ -389,8 +381,7 @@ body {
 }
 
 .metric-card.clickable:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-md);
 }
 
 .recent-requests-section {
@@ -477,16 +468,15 @@ body {
 }
 
 .metric-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-    border-color: var(--color-gray-300);
+    box-shadow: var(--shadow-sm);
+    border-color: var(--color-gray-200);
 }
 
 .metric-icon {
     width: 48px;
     height: 48px;
     border-radius: var(--radius-lg);
-    background: linear-gradient(135deg, var(--color-primary-50), var(--color-primary-100));
+    background: var(--color-gray-50);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -936,7 +926,7 @@ body {
     width: 48px;
     height: 48px;
     border-radius: var(--radius-lg);
-    background: linear-gradient(135deg, var(--color-primary-50), var(--color-primary-100));
+    background: var(--color-gray-50);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1142,7 +1132,7 @@ body {
 
 .ai-recommendation {
     padding: var(--space-4);
-    background: linear-gradient(135deg, #e0f2fe, #f0f9ff);
+    background: #f0f9ff;
     border-radius: var(--radius-md);
     border: 1px solid #0ea5e9;
     color: var(--color-gray-800);
@@ -1157,7 +1147,7 @@ body {
 
 .ai-reply {
     padding: var(--space-4);
-    background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+    background: #f0fdf4;
     border-radius: var(--radius-md);
     border: 1px solid #22c55e;
     color: var(--color-gray-800);
@@ -1499,7 +1489,7 @@ body {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--color-gray-500);
     border: none;
     cursor: pointer;
     display: flex;
@@ -1511,8 +1501,7 @@ body {
 }
 
 .user-avatar:hover {
-    transform: scale(1.05);
-    box-shadow: var(--shadow-md);
+    background: var(--color-gray-400);
 }
 
 .user-avatar svg {
@@ -1555,7 +1544,7 @@ body {
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--color-gray-500);
     display: flex;
     align-items: center;
     justify-content: center;
