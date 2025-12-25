@@ -1,5 +1,5 @@
 {
-  "name": "ms-teams-support-tracker",
+  "name": "aitracker",
   "version": "1.0.0",
   "description": "AI-assisted internal support tracking system",
   "main": "server.js",

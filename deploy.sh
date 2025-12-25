@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# MS Teams Support Tracker - Deployment Script
+# AiTracker - Deployment Script
 # This script helps with Railway deployment setup
 
-echo "🚀 MS Teams Support Tracker Deployment"
+echo "🚀 AiTracker Deployment"
 echo "======================================"
 
 # Check if Railway CLI is installed
