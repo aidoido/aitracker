@@ -27,6 +27,9 @@ function cacheElements() {
     elements.logoutBtn = document.getElementById('logout-btn');
     elements.pageTitle = document.getElementById('page-title');
     elements.userAvatar = document.getElementById('user-avatar');
+    elements.userDropdown = document.getElementById('user-dropdown');
+    elements.userName = document.getElementById('user-name');
+    elements.userRole = document.getElementById('user-role');
 
     // Navigation items
     elements.navItems = document.querySelectorAll('.nav-item');
@@ -100,14 +103,14 @@ function setupEventListeners() {
 
     // Close dropdown when clicking outside
     document.addEventListener('click', (e) => {
-        if (!elements.userAvatar.contains(e.target) && !document.getElementById('user-dropdown').contains(e.target)) {
+        if (!elements.userAvatar.contains(e.target) && !elements.userDropdown.contains(e.target)) {
             hideUserDropdown();
         }
     });
 
     // Handle both sidebar logout (if exists) and dropdown logout
     if (elements.logoutBtn) {
-        elements.logoutBtn.addEventListener('click', logout);
+    elements.logoutBtn.addEventListener('click', logout);
     }
     const dropdownLogoutBtn = document.getElementById('dropdown-logout-btn');
     if (dropdownLogoutBtn) {
@@ -205,8 +208,7 @@ function updateUserInterface() {
 
 // User dropdown functionality
 function toggleUserDropdown() {
-    const dropdown = document.getElementById('user-dropdown');
-    const isVisible = dropdown.classList.contains('show');
+    const isVisible = elements.userDropdown.classList.contains('show');
 
     if (isVisible) {
         hideUserDropdown();
@@ -216,14 +218,12 @@ function toggleUserDropdown() {
 }
 
 function showUserDropdown() {
-    const dropdown = document.getElementById('user-dropdown');
-    dropdown.classList.add('show');
+    elements.userDropdown.classList.add('show');
     loadUserInfo();
 }
 
 function hideUserDropdown() {
-    const dropdown = document.getElementById('user-dropdown');
-    dropdown.classList.remove('show');
+    elements.userDropdown.classList.remove('show');
 }
 
 async function loadUserInfo() {
@@ -231,16 +231,16 @@ async function loadUserInfo() {
         const response = await fetch('/api/auth/me');
         if (response.ok) {
             const user = await response.json();
-            document.getElementById('user-name').textContent = user.username;
-            document.getElementById('user-role').textContent = user.role;
+            elements.userName.textContent = user.username;
+            elements.userRole.textContent = user.role;
         } else {
-            document.getElementById('user-name').textContent = 'Unknown User';
-            document.getElementById('user-role').textContent = 'Unknown Role';
+            elements.userName.textContent = 'Unknown User';
+            elements.userRole.textContent = 'Unknown Role';
         }
     } catch (error) {
         console.error('Failed to load user info:', error);
-        document.getElementById('user-name').textContent = 'Error loading user';
-        document.getElementById('user-role').textContent = 'Error loading role';
+        elements.userName.textContent = 'Error loading user';
+        elements.userRole.textContent = 'Error loading role';
     }
 }
 
@@ -287,7 +287,7 @@ function switchSection(sectionName) {
     }
 }
 
-    // Dashboard functions
+// Dashboard functions
 async function loadDashboard() {
     try {
         const response = await fetch('/api/dashboard/metrics');
@@ -594,7 +594,7 @@ async function openRequestDetail(requestId) {
         const content = `
             <div class="request-detail-view">
                 <div class="detail-grid">
-                    <div class="detail-section">
+                <div class="detail-section">
                         <h4 class="detail-section-title">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -606,19 +606,19 @@ async function openRequestDetail(requestId) {
                             <div class="detail-item">
                                 <span class="detail-label">Full Name</span>
                                 <span class="detail-value">${request.requester_name}</span>
-                            </div>
+                </div>
                             <div class="detail-item">
                                 <span class="detail-label">Contact Channel</span>
                                 <span class="detail-value">${request.channel.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
-                            </div>
+                </div>
                             <div class="detail-item">
                                 <span class="detail-label">Created</span>
                                 <span class="detail-value">${new Date(request.created_at).toLocaleDateString()} at ${new Date(request.created_at).toLocaleTimeString()}</span>
-                            </div>
-                        </div>
+                </div>
+                </div>
                     </div>
 
-                    <div class="detail-section">
+                <div class="detail-section">
                         <h4 class="detail-section-title">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M9 12l2 2 4-4"></path>
@@ -642,10 +642,10 @@ async function openRequestDetail(requestId) {
                                     <option value="open" ${request.status === 'open' ? 'selected' : ''}>🟢 Open</option>
                                     <option value="in_progress" ${request.status === 'in_progress' ? 'selected' : ''}>🟡 In Progress</option>
                                     <option value="closed" ${request.status === 'closed' ? 'selected' : ''}>🔴 Closed</option>
-                                </select>
-                            </div>
-                        </div>
+                        </select>
                     </div>
+                </div>
+                </div>
 
                     <div class="detail-section full-width">
                         <h4 class="detail-section-title">
@@ -659,7 +659,7 @@ async function openRequestDetail(requestId) {
                         </div>
                     </div>
 
-                    ${request.ai_recommendation ? `
+                ${request.ai_recommendation ? `
                     <div class="detail-section full-width">
                         <h4 class="detail-section-title">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -671,7 +671,7 @@ async function openRequestDetail(requestId) {
                             ${request.ai_recommendation}
                         </div>
                     </div>
-                    ` : ''}
+                ` : ''}
 
                     ${request.ai_reply ? `
                     <div class="detail-section full-width">
@@ -694,7 +694,7 @@ async function openRequestDetail(requestId) {
                     </div>
                     ` : ''}
 
-                    ${request.solution ? `
+                ${request.solution ? `
                     <div class="detail-section full-width">
                         <h4 class="detail-section-title">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -706,7 +706,7 @@ async function openRequestDetail(requestId) {
                             ${request.solution.replace(/\n/g, '<br>')}
                         </div>
                     </div>
-                    ` : ''}
+                ` : ''}
 
                     <div class="detail-section full-width">
                         <h4 class="detail-section-title">
@@ -722,7 +722,7 @@ async function openRequestDetail(requestId) {
                                 </svg>
                                 Generate AI Reply
                             </button>
-                            ${currentUser.role !== 'viewer' ? `
+                    ${currentUser.role !== 'viewer' ? `
                                 <button class="btn-secondary" onclick="editRequestSolution(${request.id})">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -749,7 +749,7 @@ async function openRequestDetail(requestId) {
                                     </svg>
                                     Delete Request
                                 </button>
-                            ` : ''}
+                    ` : ''}
                         </div>
                     </div>
                 </div>
@@ -1008,7 +1008,7 @@ function renderKbArticles(articles) {
                     <span>•</span>
                     <span>${new Date(article.updated_at).toLocaleDateString()}</span>
                     ${article.category_name ? `<span>•</span><span>${article.category_name}</span>` : ''}
-                </div>
+            </div>
                 ${article.tags && article.tags.length > 0 ? `
                 <div class="kb-tags">
                     ${article.tags.slice(0, 3).map(tag => `<span class="kb-tag">${tag}</span>`).join('')}
@@ -1051,8 +1051,8 @@ async function loadKbCategories(selector = 'kb-category') {
 
         const select = document.getElementById(selector);
         if (select) {
-            select.innerHTML = '<option value="">Select Category</option>' +
-                categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('');
+        select.innerHTML = '<option value="">Select Category</option>' +
+            categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('');
         }
     } catch (error) {
         console.error('Failed to load categories:', error);
