@@ -95,6 +95,16 @@ function setupEventListeners() {
     });
 
     // Authentication
+    // User menu functionality
+    elements.userAvatar.addEventListener('click', toggleUserDropdown);
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!elements.userAvatar.contains(e.target) && !document.getElementById('user-dropdown').contains(e.target)) {
+            hideUserDropdown();
+        }
+    });
+
     elements.logoutBtn.addEventListener('click', logout);
 
     // Requests
@@ -183,6 +193,47 @@ function updateUserInterface() {
         if (currentUser.role === 'admin') {
             document.getElementById('admin-nav-item').style.display = 'flex';
         }
+    }
+}
+
+// User dropdown functionality
+function toggleUserDropdown() {
+    const dropdown = document.getElementById('user-dropdown');
+    const isVisible = dropdown.classList.contains('show');
+
+    if (isVisible) {
+        hideUserDropdown();
+    } else {
+        showUserDropdown();
+    }
+}
+
+function showUserDropdown() {
+    const dropdown = document.getElementById('user-dropdown');
+    dropdown.classList.add('show');
+    loadUserInfo();
+}
+
+function hideUserDropdown() {
+    const dropdown = document.getElementById('user-dropdown');
+    dropdown.classList.remove('show');
+}
+
+async function loadUserInfo() {
+    try {
+        const response = await fetch('/api/auth/me');
+        if (response.ok) {
+            const user = await response.json();
+            document.getElementById('user-name').textContent = user.username;
+            document.getElementById('user-role').textContent = user.role;
+        } else {
+            document.getElementById('user-name').textContent = 'Unknown User';
+            document.getElementById('user-role').textContent = 'Unknown Role';
+        }
+    } catch (error) {
+        console.error('Failed to load user info:', error);
+        document.getElementById('user-name').textContent = 'Error loading user';
+        document.getElementById('user-role').textContent = 'Error loading role';
     }
 }
 
