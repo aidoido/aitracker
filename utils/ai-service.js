@@ -42,40 +42,88 @@ class AIService {
     const apiKey = settings.api_key_encrypted;
 
     // Map user-friendly model names to actual API model names
-    // x.ai currently supports: grok-beta, grok-vision-beta
+    // x.ai supports: grok-beta, grok-vision-beta
+    // OpenRouter has different model names
     const modelMapping = {
+      // x.ai models
       'grok-beta': 'grok-beta',
       'grok': 'grok-beta',
       'grok-vision-beta': 'grok-vision-beta',
-      'openrouter': 'grok-beta', // Fallback for OpenRouter
+      // OpenRouter models (if using OpenRouter)
+      'openrouter': 'anthropic/claude-3-haiku', // Fallback model for OpenRouter
     };
 
     // Use the model name directly if it's not in mapping, otherwise map it
     const actualModel = modelMapping[settings.model_name] || settings.model_name || 'grok-beta';
 
+    // Ensure we have a valid model
+    if (!actualModel) {
+      throw new Error('No valid AI model specified. Please check your AI settings.');
+    }
+
     console.log('Using model:', actualModel, 'for requested model:', settings.model_name);
 
-    const response = await fetch('https://api.x.ai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
+    // Prepare request based on provider
+    let apiUrl, requestBody, headers;
+
+    if (settings.provider === 'openrouter') {
+      apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
+      requestBody = {
         model: actualModel,
         messages: [{ role: 'user', content: prompt }],
         temperature: parseFloat(settings.temperature) || 0.7,
         max_tokens: maxTokens
-      })
+      };
+      headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+        'HTTP-Referer': 'https://your-app.com',
+        'X-Title': 'Support Tracker AI'
+      };
+    } else {
+      // Default to x.ai - try different possible endpoints
+      const possibleEndpoints = [
+        'https://api.x.ai/v1/chat/completions',
+        'https://api.grok.x.ai/v1/chat/completions'
+      ];
+
+      // Try the first endpoint, could add fallback logic later
+      apiUrl = possibleEndpoints[0];
+
+      requestBody = {
+        model: actualModel,
+        messages: [{ role: 'user', content: prompt }],
+        temperature: parseFloat(settings.temperature) || 0.7,
+        max_tokens: maxTokens,
+        stream: false
+      };
+      headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      };
+    }
+
+    console.log('Making AI request to:', apiUrl, 'with model:', actualModel, 'provider:', settings.provider);
+
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(requestBody)
     });
 
     if (!response.ok) {
       let errorDetails = `HTTP ${response.status}`;
       try {
-        const errorData = await response.json();
-        errorDetails += `: ${errorData.error?.message || JSON.stringify(errorData)}`;
+        const errorText = await response.text();
+        console.error('AI API Error Response:', errorText);
+        try {
+          const errorData = JSON.parse(errorText);
+          errorDetails += `: ${errorData.error?.message || errorData.message || JSON.stringify(errorData)}`;
+        } catch (parseError) {
+          errorDetails += `: ${errorText}`;
+        }
       } catch (e) {
-        // If we can't parse error response, just use status
+        // If we can't read error response, just use status
         errorDetails += ` (${response.statusText})`;
       }
       throw new Error(`AI API request failed: ${errorDetails}`);
@@ -140,6 +188,11 @@ Respond with only valid JSON, no other text.`;
       throw new Error('AI API key not configured. Please configure your Grok API key in Admin → AI Settings');
     }
 
+    // Validate API key format
+    if (settings.api_key_encrypted.length < 20) {
+      throw new Error('API key appears to be too short. Please check that you have entered a valid x.ai API key.');
+    }
+
     const prompt = `You are an Oracle Fusion ERP support specialist. Generate a professional, Oracle Fusion-specific response for this Microsoft Teams support request. Focus on Oracle Fusion applications, modules, and best practices.
 
 Response guidelines:
@@ -191,6 +244,11 @@ Generate only the response text, no quotes or additional formatting.`;
 
     if (!settings.api_key_encrypted) {
       throw new Error('AI API key not configured. Please configure your Grok API key in Admin → AI Settings');
+    }
+
+    // Validate API key format
+    if (settings.api_key_encrypted.length < 20) {
+      throw new Error('API key appears to be too short. Please check that you have entered a valid x.ai API key.');
     }
 
     // Get requests for the date

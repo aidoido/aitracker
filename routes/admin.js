@@ -124,6 +124,39 @@ router.put('/ai-settings', async (req, res) => {
   }
 });
 
+// Debug AI settings (admin only) - doesn't expose API key
+router.get('/ai-debug', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT provider, model_name, temperature, max_tokens, categorization_enabled, replies_enabled, summaries_enabled, kb_enabled, updated_at FROM ai_settings LIMIT 1');
+
+    if (result.rows.length === 0) {
+      return res.json({ error: 'No AI settings found. Please configure AI settings first.' });
+    }
+
+    const settings = result.rows[0];
+    const hasApiKey = !!(await pool.query('SELECT api_key_encrypted FROM ai_settings LIMIT 1')).rows[0]?.api_key_encrypted;
+
+    res.json({
+      configured: true,
+      hasApiKey: hasApiKey,
+      provider: settings.provider,
+      model_name: settings.model_name,
+      temperature: settings.temperature,
+      max_tokens: settings.max_tokens,
+      features: {
+        categorization_enabled: settings.categorization_enabled,
+        replies_enabled: settings.replies_enabled,
+        summaries_enabled: settings.summaries_enabled,
+        kb_enabled: settings.kb_enabled
+      },
+      last_updated: settings.updated_at
+    });
+  } catch (error) {
+    console.error('Error getting AI debug info:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Get all users (admin only)
 router.get('/users', async (req, res) => {
   try {
