@@ -7,8 +7,17 @@ class AIService {
 
   async getSettings() {
     if (!this.settings) {
+      console.log('Loading AI settings from database...');
       const result = await pool.query('SELECT * FROM ai_settings LIMIT 1');
       this.settings = result.rows[0] || {};
+      console.log('AI settings loaded:', {
+        hasSettings: !!result.rows[0],
+        provider: this.settings.provider,
+        hasApiKey: !!this.settings.api_key_encrypted,
+        modelName: this.settings.model_name,
+        repliesEnabled: this.settings.replies_enabled,
+        summariesEnabled: this.settings.summaries_enabled
+      });
     }
     return this.settings;
   }
@@ -33,13 +42,16 @@ class AIService {
     const apiKey = settings.api_key_encrypted;
 
     // Map user-friendly model names to actual API model names
+    // x.ai currently supports: grok-beta, grok-vision-beta
     const modelMapping = {
       'grok-beta': 'grok-beta',
-      'grok-4-1-fast-reasoning': 'grok-2-1212', // Use a known working model
-      'grok': 'grok-beta', // Default fallback
+      'grok': 'grok-beta',
+      'grok-vision-beta': 'grok-vision-beta',
+      'openrouter': 'grok-beta', // Fallback for OpenRouter
     };
 
-    const actualModel = modelMapping[settings.model_name] || 'grok-beta';
+    // Use the model name directly if it's not in mapping, otherwise map it
+    const actualModel = modelMapping[settings.model_name] || settings.model_name || 'grok-beta';
 
     console.log('Using model:', actualModel, 'for requested model:', settings.model_name);
 
@@ -116,11 +128,16 @@ Respond with only valid JSON, no other text.`;
     console.log('AI reply settings:', {
       replies_enabled: settings.replies_enabled,
       model_name: settings.model_name,
-      temperature: settings.temperature
+      temperature: settings.temperature,
+      hasApiKey: !!settings.api_key_encrypted
     });
 
     if (!settings.replies_enabled) {
       throw new Error('AI replies are disabled. Enable them in Admin → AI Settings');
+    }
+
+    if (!settings.api_key_encrypted) {
+      throw new Error('AI API key not configured. Please configure your Grok API key in Admin → AI Settings');
     }
 
     const prompt = `You are an Oracle Fusion ERP support specialist. Generate a professional, Oracle Fusion-specific response for this Microsoft Teams support request. Focus on Oracle Fusion applications, modules, and best practices.
@@ -159,9 +176,21 @@ Generate only the response text, no quotes or additional formatting.`;
   }
 
   async generateDailySummary(date) {
+    console.log('Generating AI daily summary for date:', date);
+
     const settings = await this.getSettings();
+    console.log('AI summary settings:', {
+      summaries_enabled: settings.summaries_enabled,
+      hasApiKey: !!settings.api_key_encrypted,
+      model_name: settings.model_name
+    });
+
     if (!settings.summaries_enabled) {
-      throw new Error('AI summaries are disabled');
+      throw new Error('AI summaries are disabled. Enable them in Admin → AI Settings');
+    }
+
+    if (!settings.api_key_encrypted) {
+      throw new Error('AI API key not configured. Please configure your Grok API key in Admin → AI Settings');
     }
 
     // Get requests for the date
