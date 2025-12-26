@@ -926,102 +926,6 @@
                         </table>
                     </div>
                 </section>
-            </div>
-        </main>
-
-    <!-- Add/Edit User Modal -->
-    <div id="user-modal" class="modal">
-        <div class="modal-content large">
-            <div class="modal-header">
-                <div class="modal-title-section">
-                    <div class="modal-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
-                    </div>
-                    <div>
-                        <h3 class="modal-title" id="user-modal-title">Add User</h3>
-                        <p class="modal-subtitle">Create a new user account or edit existing user details</p>
-                    </div>
-                </div>
-                <button class="modal-close">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="user-form">
-                    <div class="form-grid">
-                        <div class="form-section">
-                            <h4 class="form-section-title">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                    <circle cx="12" cy="7" r="4"></circle>
-                                </svg>
-                                User Information
-                            </h4>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="user-username">Username *</label>
-                                    <input type="text" id="user-username" name="username" placeholder="Enter username" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="user-email">Email Address *</label>
-                                    <input type="email" id="user-email" name="email" placeholder="user@example.com" required>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-section">
-                            <h4 class="form-section-title">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                                    <circle cx="12" cy="16" r="1"></circle>
-                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                                </svg>
-                                Access Control
-                            </h4>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="user-password">Password *</label>
-                                    <input type="password" id="user-password" name="password" placeholder="Enter secure password" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="user-role">User Role *</label>
-                                    <select id="user-role" name="role" required>
-                                        <option value="">Select User Role</option>
-                                        <option value="admin">👑 Administrator - Full system access</option>
-                                        <option value="agent">👨‍💼 Support Agent - Handle requests & KB</option>
-                                        <option value="viewer">👁️ Viewer - Read-only access</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="button" class="btn-secondary" onclick="closeModal()">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                            </svg>
-                            Cancel
-                        </button>
-                        <button type="submit" class="btn-primary">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14,2 14,8 20,8"></polyline>
-                            </svg>
-                            Save User
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
 
                 <!-- API Documentation Section -->
                 <section id="api-docs-section" class="content-section">
@@ -1284,21 +1188,104 @@ Content-Disposition: attachment; filename="support_requests.csv"</code></pre>
                         </div>
                     </div>
                 </section>
+            </div>
+        </main>
+
+    <!-- Add/Edit User Modal -->
+    <div id="user-modal" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <div class="modal-title-section">
+                    <div class="modal-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="modal-title" id="user-modal-title">Add User</h3>
+                        <p class="modal-subtitle">Create a new user account or edit existing user details</p>
+                    </div>
+                </div>
+                <button class="modal-close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="user-form">
+                    <div class="form-grid">
+                        <div class="form-section">
+                            <h4 class="form-section-title">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                                User Information
+                            </h4>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="user-username">Username *</label>
+                                    <input type="text" id="user-username" name="username" placeholder="Enter username" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="user-email">Email Address *</label>
+                                    <input type="email" id="user-email" name="email" placeholder="user@example.com" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h4 class="form-section-title">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                    <circle cx="12" cy="16" r="1"></circle>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                </svg>
+                                Access Control
+                            </h4>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="user-password">Password *</label>
+                                    <input type="password" id="user-password" name="password" placeholder="Enter secure password" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="user-role">User Role *</label>
+                                    <select id="user-role" name="role" required>
+                                        <option value="">Select User Role</option>
+                                        <option value="admin">👑 Administrator - Full system access</option>
+                                        <option value="agent">👨‍💼 Support Agent - Handle requests & KB</option>
+                                        <option value="viewer">👁️ Viewer - Read-only access</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" onclick="closeModal()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn-primary">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14,2 14,8 20,8"></polyline>
+                            </svg>
+                            Save User
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <script>
-        let currentUserId = null;
-
-        // Navigation switching
-        document.querySelectorAll('.nav-item[data-section]').forEach(navItem => {
-            navItem.addEventListener('click', () => {
-                const section = navItem.getAttribute('data-section');
-                switchAdminSection(section);
-            });
-        });
-
-        function switchAdminSection(sectionName) {
-            // Update navigation
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
             document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
 
             // Update content sections
