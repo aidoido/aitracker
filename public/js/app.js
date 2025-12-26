@@ -19,6 +19,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Load initial data
     if (currentUser) {
         switchSection('dashboard');
+        // Load user info for profile dropdown
+        loadUserInfo();
     }
 });
 
