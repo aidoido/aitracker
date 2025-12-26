@@ -1,22 +1,32 @@
-/* Clean Notion-Style Design System */
+/* Professional Cal.com-Inspired Design System */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-    /* Notion-inspired Color Palette */
+    /* Professional Color Palette (Cal.com inspired) */
     --color-white: #ffffff;
-    --color-gray-50: #f7f6f3;
-    --color-gray-100: #e1e5e9;
-    --color-gray-200: #d1d5db;
-    --color-gray-300: #9ca3af;
-    --color-gray-400: #787774;
-    --color-gray-500: #37352f;
-    --color-black: #000000;
+    --color-gray-50: #f8f9fa;
+    --color-gray-100: #f1f3f4;
+    --color-gray-200: #e8eaed;
+    --color-gray-300: #dadce0;
+    --color-gray-400: #bdc1c6;
+    --color-gray-500: #9aa0a6;
+    --color-gray-600: #5f6368;
+    --color-gray-700: #3c4043;
+    --color-gray-800: #202124;
+    --color-gray-900: #1a1a1a;
 
-    /* Status Colors (Subtle) */
-    --color-success: #2e7d32;
-    --color-warning: #ed6c02;
-    --color-error: #d32f2f;
-    --color-info: #0288d1;
+    /* Professional Accent Colors */
+    --color-primary: #0066cc;
+    --color-primary-hover: #0052a3;
+    --color-primary-light: #e3f2fd;
+    --color-secondary: #7c3aed;
+    --color-secondary-hover: #6d28d9;
+
+    /* Status Colors (Professional) */
+    --color-success: #34a853;
+    --color-warning: #fbbc04;
+    --color-error: #ea4335;
+    --color-info: #4285f4;
 
     /* Spacing */
     --space-1: 0.25rem;
@@ -35,11 +45,11 @@
     --radius-lg: 8px;
     --radius-xl: 12px;
 
-    /* Subtle Shadows */
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-    --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-    --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.06);
-    --shadow-xl: 0 8px 16px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.08);
+    /* Professional Shadows (Cal.com style) */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
 }
 
 * {
@@ -49,13 +59,15 @@
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-size: 14px;
-    line-height: 1.6;
-    color: var(--color-gray-500);
-    background-color: var(--color-white);
+    line-height: 1.5;
+    color: var(--color-gray-700);
+    background-color: var(--color-gray-50);
     margin: 0;
     padding: 0;
     overflow-x: hidden;
     font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* Layout */
@@ -110,8 +122,8 @@ body {
     color: var(--color-gray-600);
     text-decoration: none;
     transition: all 0.2s ease;
-    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
-    margin-right: var(--space-2);
+    border-radius: var(--radius-md);
+    margin: 0 var(--space-2);
     position: relative;
 }
 
@@ -121,9 +133,9 @@ body {
 }
 
 .nav-item.active {
-    background: var(--color-gray-500);
-    color: white;
-    box-shadow: var(--shadow-md);
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+    font-weight: 500;
 }
 
 .nav-item.active::before {
@@ -132,9 +144,9 @@ body {
     left: 0;
     top: 50%;
     transform: translateY(-50%);
-    width: 4px;
-    height: 24px;
-    background: white;
+    width: 3px;
+    height: 20px;
+    background: var(--color-primary);
     border-radius: 0 2px 2px 0;
 }
 
@@ -249,7 +261,7 @@ body {
 
 /* Buttons */
 .btn-primary {
-    background: var(--color-gray-500);
+    background: var(--color-primary);
     color: white;
     border: none;
     padding: var(--space-3) var(--space-6);
@@ -265,9 +277,9 @@ body {
 }
 
 .btn-primary:hover {
-    transform: translateY(-1px);
+    background: var(--color-primary-hover);
     box-shadow: var(--shadow-md);
-    background: var(--color-black);
+    transform: translateY(-1px);
 }
 
 .btn-secondary {
@@ -283,13 +295,14 @@ body {
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
+    box-shadow: var(--shadow-sm);
 }
 
 .btn-secondary:hover {
     background: var(--color-gray-50);
     border-color: var(--color-gray-400);
+    box-shadow: var(--shadow-md);
     transform: translateY(-1px);
-    box-shadow: var(--shadow-sm);
 }
 
 .btn-danger {
@@ -457,7 +470,7 @@ body {
 .metric-card {
     background: white;
     padding: var(--space-6);
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--color-gray-200);
     transition: all 0.2s ease;
@@ -704,12 +717,12 @@ body {
 
 .modal-content {
     background: white;
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-lg);
     max-width: 640px;
     width: 100%;
     max-height: 90vh;
     overflow: hidden;
-    box-shadow: var(--shadow-xl);
+    box-shadow: var(--shadow-lg);
     border: 1px solid var(--color-gray-200);
 }
 
@@ -782,6 +795,7 @@ body {
 }
 
 .form-group input,
+.form-group input,
 .form-group select,
 .form-group textarea {
     width: 100%;
@@ -792,6 +806,14 @@ body {
     background: white;
     transition: all 0.2s ease;
     font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
 }
 
 .form-group input:focus,
