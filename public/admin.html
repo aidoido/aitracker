@@ -1286,6 +1286,19 @@ Content-Disposition: attachment; filename="support_requests.csv"</code></pre>
     </div>
 
     <script>
+        let currentUserId = null;
+
+        // Navigation switching
+        document.querySelectorAll('.nav-item[data-section]').forEach(navItem => {
+            navItem.addEventListener('click', () => {
+                const section = navItem.getAttribute('data-section');
+                switchAdminSection(section);
+            });
+        });
+
+        function switchAdminSection(sectionName) {
+            // Update navigation
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
             document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
 
             // Update content sections
