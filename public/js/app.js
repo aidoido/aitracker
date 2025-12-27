@@ -489,22 +489,34 @@ async function submitVoiceRecording() {
 let recognition = null;
 
 function initSpeechRecognition() {
+  console.log('🎤 Initializing speech recognition...');
+
   // Check if browser supports speech recognition
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
   if (!SpeechRecognition) {
-    console.warn('❌ Speech recognition not supported in this browser');
+    console.error('❌ Speech recognition not supported in this browser');
+    console.error('Supported browsers: Chrome, Edge, Safari');
     return false;
   }
 
-  recognition = new SpeechRecognition();
-  recognition.continuous = false;
-  recognition.interimResults = true; // Show interim results
-  recognition.lang = 'en-US'; // Can be made configurable
-  recognition.maxAlternatives = 1;
+  try {
+    recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = true; // Show interim results
+    recognition.lang = 'en-US'; // Can be made configurable
+    recognition.maxAlternatives = 1;
 
-  console.log('✅ Speech recognition initialized');
-  return true;
+    console.log('✅ Speech recognition initialized successfully');
+    console.log('🎤 Recognition object created:', !!recognition);
+    console.log('🎤 Language:', recognition.lang);
+    console.log('🎤 Interim results:', recognition.interimResults);
+
+    return true;
+  } catch (error) {
+    console.error('❌ Failed to create speech recognition:', error);
+    return false;
+  }
 }
 
 async function processWithBrowserSpeech(audioBlob) {
@@ -571,6 +583,15 @@ function startRealTimeSpeechRecognition() {
         statusElement.textContent = 'Listening... Speak now';
       }
 
+      // Initialize live transcript
+      const liveTranscriptElement = document.getElementById('live-transcript-text');
+      if (liveTranscriptElement) {
+        liveTranscriptElement.textContent = '🎤 Listening...';
+        console.log('✅ Live transcript element found and initialized');
+      } else {
+        console.error('❌ Live transcript element NOT found!');
+      }
+
       // Set timeout for recognition
       recognitionTimeout = setTimeout(() => {
         console.log('🎤 Recognition timeout - stopping...');
@@ -579,24 +600,38 @@ function startRealTimeSpeechRecognition() {
     };
 
     recognition.onresult = (event) => {
-      console.log('🎤 Speech recognition result received');
+      console.log('🎤 Speech recognition result received, results:', event.results.length);
 
-      interimTranscript = '';
+      let newInterimTranscript = '';
+      let newFinalTranscript = '';
 
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript;
+        console.log(`Result ${i}: "${transcript}" (final: ${event.results[i].isFinal})`);
 
         if (event.results[i].isFinal) {
-          finalTranscript += transcript;
-          console.log('📝 Final transcript added:', transcript);
+          newFinalTranscript += transcript;
+          console.log('📝 Added final transcript:', transcript);
         } else {
-          interimTranscript = transcript;
+          newInterimTranscript = transcript;
           console.log('📝 Interim transcript:', transcript);
         }
       }
 
+      // Update our global transcripts
+      if (newFinalTranscript) {
+        finalTranscript += newFinalTranscript;
+      }
+      interimTranscript = newInterimTranscript;
+
       // Update live transcript display during recording
       updateLiveTranscriptDisplay(finalTranscript, interimTranscript);
+
+      // Also update status to show we're actively receiving results
+      const statusElement = document.querySelector('.recording-status h4');
+      if (statusElement && (finalTranscript || interimTranscript)) {
+        statusElement.textContent = 'Hearing you...';
+      }
     };
 
     recognition.onerror = (event) => {
@@ -795,10 +830,17 @@ function showVoiceError(message) {
 }
 
 function updateLiveTranscriptDisplay(finalText, interimText) {
+  console.log('📝 Updating live transcript:', { finalText, interimText });
+
   const liveTranscriptElement = document.getElementById('live-transcript-text');
   if (liveTranscriptElement) {
     // Show final text in black, interim text in gray
-    liveTranscriptElement.innerHTML = `${finalText}<span style="color: var(--color-gray-500); font-style: italic;">${interimText}</span>`;
+    const displayText = finalText + (interimText ? `<span style="color: #6b7280; font-style: italic;">${interimText}</span>` : '');
+    liveTranscriptElement.innerHTML = displayText || '🎤 Listening...';
+
+    console.log('✅ Live transcript updated:', displayText);
+  } else {
+    console.error('❌ Cannot update live transcript - element not found!');
   }
 }
 
@@ -841,6 +883,19 @@ window.testVoiceModal = function() {
 };
 
 window.forceShowVoiceButtons = forceShowVoiceButtons;
+
+// Test live transcript functionality
+window.testLiveTranscript = function() {
+  console.log('🧪 Testing live transcript functionality...');
+
+  // Simulate some transcript updates
+  setTimeout(() => updateLiveTranscriptDisplay('Hello', ' world...'), 500);
+  setTimeout(() => updateLiveTranscriptDisplay('Hello world', ' how are'), 1000);
+  setTimeout(() => updateLiveTranscriptDisplay('Hello world how are you', ' today?'), 1500);
+  setTimeout(() => updateLiveTranscriptDisplay('Hello world how are you today?', ''), 2000);
+
+  console.log('✅ Live transcript test initiated - watch the display!');
+};
 
 function hideUserDropdown() {
     elements.userDropdown.classList.remove('show');

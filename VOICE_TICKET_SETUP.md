@@ -338,3 +338,4 @@ psql $DATABASE_URL -c "SELECT 1;"
 - 🎯 **User-Friendly** - Intuitive voice interface
 
 **Ready to enable voice tickets in your Ticktz instance?** 🚀🎤
+

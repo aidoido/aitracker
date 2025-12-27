@@ -89,3 +89,4 @@ BEGIN
     RAISE NOTICE 'To disable voice features, set VOICE_TICKETS_ENABLED=false in environment';
     RAISE NOTICE 'To rollback, run cleanup_voice_data() function';
 END $$;
+

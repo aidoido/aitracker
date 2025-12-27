@@ -8,3 +8,4 @@ CREATE INDEX IF NOT EXISTS idx_kb_articles_tags ON kb_articles USING GIN (tags);
 UPDATE kb_articles SET tags = '{}' WHERE tags IS NULL;
 
 
+
