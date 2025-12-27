@@ -485,16 +485,45 @@ async function submitVoiceRecording() {
   }
 }
 
+// Web Speech API variables
+let recognition = null;
+
+function initSpeechRecognition() {
+  // Check if browser supports speech recognition
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    console.warn('❌ Speech recognition not supported in this browser');
+    return false;
+  }
+
+  recognition = new SpeechRecognition();
+  recognition.continuous = false;
+  recognition.interimResults = true; // Show interim results
+  recognition.lang = 'en-US'; // Can be made configurable
+  recognition.maxAlternatives = 1;
+
+  console.log('✅ Speech recognition initialized');
+  return true;
+}
+
 async function processWithBrowserSpeech(audioBlob) {
-  // Fallback: Use browser speech recognition
-  // In production, this would be replaced with x.ai processing
+  console.log('🎤 Starting real-time speech recognition...');
 
   try {
-    const transcript = await speechToText(audioBlob);
+    // Initialize speech recognition if not already done
+    if (!recognition && !initSpeechRecognition()) {
+      throw new Error('Speech recognition is not supported in this browser. Please use Chrome, Edge, or Safari.');
+    }
+
+    // Start real-time speech recognition
+    const transcript = await startRealTimeSpeechRecognition();
 
     if (!transcript || transcript.trim().length === 0) {
-      throw new Error('Could not transcribe speech. Please speak clearly and try again.');
+      throw new Error('No speech was detected. Please speak clearly and try again.');
     }
+
+    console.log('✅ Speech transcribed successfully:', transcript);
 
     // Display transcript
     document.getElementById('voice-transcript').textContent = transcript;
@@ -502,31 +531,125 @@ async function processWithBrowserSpeech(audioBlob) {
     // Show review state
     showVoiceState('voice-review');
 
-    // Process with x.ai (if available) or use basic processing
+    // Process with x.ai for intelligent analysis
     await processTranscriptWithAI(transcript);
 
   } catch (error) {
-    console.error('Speech processing failed:', error);
+    console.error('❌ Speech processing failed:', error);
     showVoiceError(error.message || 'Speech processing failed. Please try again.');
   }
 }
 
-function speechToText(audioBlob) {
+function startRealTimeSpeechRecognition() {
   return new Promise((resolve, reject) => {
-    // This is a simplified version. In production, you'd use:
-    // 1. Web Speech API (browser-based, limited)
-    // 2. x.ai speech-to-text API
-    // 3. Cloud speech services
+    if (!recognition) {
+      reject(new Error('Speech recognition not initialized'));
+      return;
+    }
 
-    // For now, we'll simulate with a placeholder
-    // In real implementation, replace with actual speech recognition
+    let finalTranscript = '';
+    let interimTranscript = '';
+    let recognitionTimeout = null;
+    let hasStarted = false;
 
-    setTimeout(() => {
-      // Placeholder transcript - replace with actual speech recognition
-      const mockTranscript = "I'm having trouble accessing the Oracle Fusion system. When I try to log in, I get an error message saying invalid credentials. This is urgent because I need to process some invoices before the end of the day.";
+    // Update transcript display in real-time
+    function updateTranscriptDisplay() {
+      const transcriptElement = document.getElementById('voice-transcript');
+      if (transcriptElement) {
+        transcriptElement.textContent = finalTranscript + interimTranscript;
+      }
+    }
 
-      resolve(mockTranscript);
-    }, 2000);
+    // Set up event handlers
+    recognition.onstart = () => {
+      console.log('🎤 Speech recognition started - listening...');
+      hasStarted = true;
+
+      // Update UI to show listening state
+      const statusElement = document.querySelector('.recording-status h4');
+      if (statusElement) {
+        statusElement.textContent = 'Listening... Speak now';
+      }
+
+      // Set timeout for recognition
+      recognitionTimeout = setTimeout(() => {
+        console.log('🎤 Recognition timeout - stopping...');
+        recognition.stop();
+      }, 15000); // 15 second timeout
+    };
+
+    recognition.onresult = (event) => {
+      console.log('🎤 Speech recognition result received');
+
+      interimTranscript = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
+          console.log('📝 Final transcript added:', transcript);
+        } else {
+          interimTranscript = transcript;
+          console.log('📝 Interim transcript:', transcript);
+        }
+      }
+
+      // Update live transcript display during recording
+      updateLiveTranscriptDisplay(finalTranscript, interimTranscript);
+    };
+
+    recognition.onerror = (event) => {
+      console.error('❌ Speech recognition error:', event.error);
+      clearTimeout(recognitionTimeout);
+
+      let errorMessage = 'Speech recognition failed';
+      switch (event.error) {
+        case 'no-speech':
+          errorMessage = 'No speech detected. Please speak clearly into your microphone.';
+          break;
+        case 'audio-capture':
+          errorMessage = 'Audio capture failed. Check your microphone connection.';
+          break;
+        case 'not-allowed':
+          errorMessage = 'Microphone access denied. Please allow microphone access and try again.';
+          break;
+        case 'network':
+          errorMessage = 'Network error during speech recognition. Check your connection.';
+          break;
+        case 'service-not-allowed':
+          errorMessage = 'Speech recognition service not allowed. Try refreshing the page.';
+          break;
+        default:
+          errorMessage = `Speech recognition error: ${event.error}`;
+      }
+
+      reject(new Error(errorMessage));
+    };
+
+    recognition.onend = () => {
+      console.log('🎤 Speech recognition ended');
+      clearTimeout(recognitionTimeout);
+
+      // Use final transcript if available, otherwise interim
+      const finalResult = finalTranscript || interimTranscript;
+
+      if (finalResult.trim()) {
+        console.log('✅ Final transcript:', finalResult.trim());
+        resolve(finalResult.trim());
+      } else {
+        reject(new Error('No speech was clearly detected. Please speak louder and try again.'));
+      }
+    };
+
+    // Start recognition
+    try {
+      console.log('🎤 Starting speech recognition...');
+      recognition.start();
+    } catch (error) {
+      console.error('❌ Failed to start speech recognition:', error);
+      reject(new Error('Failed to start speech recognition. Please refresh the page and try again.'));
+    }
   });
 }
 
@@ -669,6 +792,14 @@ function showVoiceError(message) {
   document.querySelectorAll('.voice-state').forEach(state => {
     state.style.display = 'none';
   });
+}
+
+function updateLiveTranscriptDisplay(finalText, interimText) {
+  const liveTranscriptElement = document.getElementById('live-transcript-text');
+  if (liveTranscriptElement) {
+    // Show final text in black, interim text in gray
+    liveTranscriptElement.innerHTML = `${finalText}<span style="color: var(--color-gray-500); font-style: italic;">${interimText}</span>`;
+  }
 }
 
 // Utility function to convert blob to base64
