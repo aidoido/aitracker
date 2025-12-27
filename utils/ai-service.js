@@ -315,12 +315,13 @@ Respond with only valid JSON.`;
     }
   }
 
-  // Voice ticket processing with x.ai - FEATURE FLAG CONTROLLED
+  // Voice ticket processing with x.ai - ENABLED BY DEFAULT
   async processVoiceTicket(transcript) {
-    // Check if voice features are enabled
-    if (process.env.VOICE_TICKETS_ENABLED !== 'true') {
-      throw new Error('Voice ticket processing is disabled');
-    }
+    // Voice features are now enabled by default
+    // Comment out environment check for now
+    // if (process.env.VOICE_TICKETS_ENABLED !== 'true') {
+    //   throw new Error('Voice ticket processing is disabled');
+    // }
 
     const settings = await this.getSettings();
     if (!settings.replies_enabled) {

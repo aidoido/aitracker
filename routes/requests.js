@@ -447,16 +447,17 @@ router.post('/:id/generate-reply', requireAgent, async (req, res) => {
   }
 });
 
-// Voice ticket creation endpoint - FEATURE FLAG CONTROLLED
+// Voice ticket creation endpoint - ENABLED BY DEFAULT
 router.post('/voice/create', requireAuth, async (req, res) => {
   try {
-    // Check if voice features are enabled
-    if (process.env.VOICE_TICKETS_ENABLED !== 'true') {
-      return res.status(403).json({
-        error: 'Voice ticket creation is disabled',
-        details: 'This feature has been temporarily disabled. Please use the regular ticket creation form.'
-      });
-    }
+    // Voice features are now enabled by default
+    // Comment out environment check for now
+    // if (process.env.VOICE_TICKETS_ENABLED !== 'true') {
+    //   return res.status(403).json({
+    //     error: 'Voice ticket creation is disabled',
+    //     details: 'This feature has been temporarily disabled. Please use the regular ticket creation form.'
+    //   });
+    // }
 
     const { transcript, audioData } = req.body;
 
@@ -567,9 +568,11 @@ router.post('/voice/create', requireAuth, async (req, res) => {
 // Voice ticket analytics endpoint (optional)
 router.get('/voice/analytics', requireAuth, async (req, res) => {
   try {
-    if (process.env.VOICE_TICKETS_ENABLED !== 'true') {
-      return res.json({ voice_features_enabled: false });
-    }
+    // Voice features are now enabled by default
+    // Comment out environment check for now
+    // if (process.env.VOICE_TICKETS_ENABLED !== 'true') {
+    //   return res.json({ voice_features_enabled: false });
+    // }
 
     const result = await pool.query(`
       SELECT
