@@ -314,6 +314,86 @@ Respond with only valid JSON.`;
       return { improved_problem: problem, improved_solution: solution, should_be_kb: true, confidence: 3 };
     }
   }
+
+  // Voice ticket processing with x.ai - FEATURE FLAG CONTROLLED
+  async processVoiceTicket(transcript) {
+    // Check if voice features are enabled
+    if (process.env.VOICE_TICKETS_ENABLED !== 'true') {
+      throw new Error('Voice ticket processing is disabled');
+    }
+
+    const settings = await this.getSettings();
+    if (!settings.replies_enabled) {
+      throw new Error('AI features are disabled. Enable them in Admin → AI Settings');
+    }
+
+    const prompt = `You are processing a voice ticket transcript. Extract structured information and create an intelligent ticket.
+
+TRANSCRIPT: "${transcript}"
+
+Analyze the speech and return a JSON object with:
+{
+  "title": "Brief, descriptive title (5-10 words max)",
+  "description": "Full description of the problem from the transcript",
+  "category": "Choose from: hardware, software, network, account, billing, other",
+  "severity": "low|medium|high|critical based on urgency and impact",
+  "tags": ["array", "of", "relevant", "keywords", "from", "transcript"],
+  "suggested_solution": "If an obvious solution is mentioned or can be inferred",
+  "confidence": "high|medium|low based on transcript clarity",
+  "sentiment": "positive|neutral|negative|frustrated",
+  "key_phrases": ["important", "phrases", "extracted", "from", "speech"]
+}
+
+Focus on:
+- Technical terms and software names mentioned
+- Urgency indicators (urgent, ASAP, critical, cannot access)
+- Specific error messages or symptoms
+- User frustration level
+- Clear problem identification
+
+Return only valid JSON, no additional text.`;
+
+    try {
+      console.log('Processing voice ticket with x.ai...');
+      const response = await this.makeAIRequest(prompt, 800);
+      const result = JSON.parse(response);
+
+      console.log('Voice ticket processed successfully:', {
+        title: result.title,
+        category: result.category,
+        confidence: result.confidence
+      });
+
+      return {
+        title: result.title || 'Voice Ticket',
+        description: result.description || transcript,
+        category: result.category || 'other',
+        severity: result.severity || 'medium',
+        tags: Array.isArray(result.tags) ? result.tags : [],
+        suggested_solution: result.suggested_solution || null,
+        confidence: result.confidence || 'medium',
+        sentiment: result.sentiment || 'neutral',
+        key_phrases: Array.isArray(result.key_phrases) ? result.key_phrases : [],
+        transcript: transcript
+      };
+    } catch (error) {
+      console.error('Voice ticket processing failed:', error);
+
+      // Fallback: create basic ticket from transcript
+      return {
+        title: 'Voice Ticket',
+        description: transcript,
+        category: 'other',
+        severity: 'medium',
+        tags: ['voice'],
+        suggested_solution: null,
+        confidence: 'low',
+        sentiment: 'neutral',
+        key_phrases: [],
+        transcript: transcript
+      };
+    }
+  }
 }
 
 module.exports = new AIService();

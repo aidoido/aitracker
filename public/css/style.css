@@ -1650,3 +1650,220 @@ body {
         padding: 14px 16px;
     }
 }
+
+/* Voice Ticket Styles */
+.voice-state {
+    text-align: center;
+    padding: var(--space-6);
+}
+
+.voice-instructions {
+    margin-bottom: var(--space-6);
+}
+
+.voice-instructions ol {
+    text-align: left;
+    max-width: 400px;
+    margin: 0 auto;
+    padding-left: var(--space-4);
+}
+
+.voice-instructions li {
+    margin-bottom: var(--space-2);
+    color: var(--color-gray-600);
+}
+
+.voice-actions {
+    display: flex;
+    gap: var(--space-3);
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.recording-indicator {
+    position: relative;
+    display: inline-block;
+    margin-bottom: var(--space-4);
+}
+
+.recording-pulse {
+    width: 80px;
+    height: 80px;
+    border: 3px solid var(--color-gray-300);
+    border-radius: 50%;
+    position: relative;
+    margin: 0 auto;
+}
+
+.recording-pulse::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    border: 3px solid var(--color-error);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+.recording-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--color-error);
+}
+
+.recording-status h4 {
+    color: var(--color-error);
+    margin-bottom: var(--space-2);
+}
+
+.recording-timer {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--color-error);
+    margin: var(--space-2) 0;
+}
+
+.processing-indicator {
+    position: relative;
+    display: inline-block;
+    margin-bottom: var(--space-4);
+}
+
+.processing-spinner {
+    width: 80px;
+    height: 80px;
+    border: 3px solid var(--color-gray-300);
+    border-top: 3px solid var(--color-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+}
+
+.processing-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--color-primary);
+}
+
+.processing-status h4 {
+    color: var(--color-primary);
+    margin-bottom: var(--space-2);
+}
+
+.voice-transcript, .ai-analysis {
+    background: var(--color-gray-50);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    margin-bottom: var(--space-4);
+    text-align: left;
+}
+
+.voice-transcript h4, .ai-analysis h4 {
+    margin-top: 0;
+    margin-bottom: var(--space-3);
+    color: var(--color-gray-700);
+}
+
+.transcript-content {
+    background: white;
+    padding: var(--space-3);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-gray-200);
+    font-style: italic;
+    color: var(--color-gray-600);
+}
+
+.analysis-content {
+    background: white;
+    padding: var(--space-3);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-gray-200);
+}
+
+.analysis-item {
+    margin-bottom: var(--space-3);
+}
+
+.analysis-item:last-child {
+    margin-bottom: 0;
+}
+
+.confidence-badge {
+    display: inline-block;
+    padding: 2px var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.confidence-high {
+    background: var(--color-success);
+    color: white;
+}
+
+.confidence-medium {
+    background: var(--color-warning);
+    color: white;
+}
+
+.confidence-low {
+    background: var(--color-error);
+    color: white;
+}
+
+.tag {
+    display: inline-block;
+    background: var(--color-gray-200);
+    color: var(--color-gray-700);
+    padding: 2px var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    margin-right: var(--space-1);
+    margin-bottom: var(--space-1);
+}
+
+.error-message {
+    background: var(--color-error);
+    color: white;
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    text-align: center;
+}
+
+.error-message h4 {
+    margin-top: 0;
+    margin-bottom: var(--space-2);
+}
+
+.analysis-loading {
+    color: var(--color-gray-500);
+    font-style: italic;
+}
+
+/* Animations */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

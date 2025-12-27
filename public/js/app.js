@@ -2,6 +2,12 @@
 let currentUser = null;
 let currentSection = 'dashboard';
 
+// Voice ticket state
+let voiceRecorder = null;
+let voiceChunks = [];
+let recordingTimer = null;
+let recordingStartTime = null;
+
 // DOM elements
 const elements = {};
 
@@ -222,7 +228,394 @@ function toggleUserDropdown() {
 function showUserDropdown() {
     elements.userDropdown.classList.add('show');
     loadUserInfo();
+
+  // Initialize voice features
+  initializeVoiceFeatures();
 }
+
+// Voice ticket functionality
+function initializeVoiceFeatures() {
+  // Check if voice features are enabled
+  checkVoiceFeaturesEnabled();
+}
+
+async function checkVoiceFeaturesEnabled() {
+  try {
+    const response = await fetch('/api/tickets/voice/analytics');
+    const data = await response.json();
+
+    if (data.voice_features_enabled) {
+      // Show voice ticket button
+      const voiceBtn = document.getElementById('voice-ticket-btn');
+      if (voiceBtn) {
+        voiceBtn.style.display = 'inline-block';
+      }
+
+      // Add event listener
+      voiceBtn?.addEventListener('click', openVoiceModal);
+    }
+  } catch (error) {
+    console.log('Voice features not available:', error.message);
+  }
+}
+
+function openVoiceModal() {
+  const modal = document.getElementById('voice-ticket-modal');
+  modal.style.display = 'block';
+  showVoiceState('voice-ready');
+}
+
+function closeVoiceModal() {
+  const modal = document.getElementById('voice-ticket-modal');
+  modal.style.display = 'none';
+
+  // Reset state
+  stopVoiceRecording();
+  resetVoiceStates();
+}
+
+function showVoiceState(stateId) {
+  // Hide all states
+  document.querySelectorAll('.voice-state').forEach(state => {
+    state.style.display = 'none';
+  });
+
+  // Show specific state
+  const targetState = document.getElementById(stateId);
+  if (targetState) {
+    targetState.style.display = 'block';
+  }
+
+  // Hide error
+  document.getElementById('voice-error').style.display = 'none';
+}
+
+function resetVoiceStates() {
+  voiceChunks = [];
+  if (recordingTimer) {
+    clearInterval(recordingTimer);
+    recordingTimer = null;
+  }
+  recordingStartTime = null;
+
+  // Reset transcript and analysis
+  document.getElementById('voice-transcript').textContent = '';
+  document.getElementById('ai-analysis').innerHTML = '<div class="analysis-loading">Analyzing...</div>';
+  document.getElementById('submit-voice-ticket').disabled = true;
+}
+
+async function startVoiceRecording() {
+  try {
+    // Request microphone permission
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true
+      }
+    });
+
+    // Create recorder
+    voiceRecorder = new MediaRecorder(stream, {
+      mimeType: 'audio/webm;codecs=opus'
+    });
+
+    voiceChunks = [];
+
+    voiceRecorder.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        voiceChunks.push(event.data);
+      }
+    };
+
+    voiceRecorder.onstop = () => {
+      // Stop all tracks
+      stream.getTracks().forEach(track => track.stop());
+    };
+
+    // Start recording
+    voiceRecorder.start(1000); // Collect data every second
+    recordingStartTime = Date.now();
+
+    // Update UI
+    showVoiceState('voice-recording');
+    startRecordingTimer();
+
+    console.log('🎤 Voice recording started');
+
+  } catch (error) {
+    console.error('Error starting voice recording:', error);
+    showVoiceError('Could not access microphone. Please check permissions and try again.');
+  }
+}
+
+function stopVoiceRecording() {
+  if (voiceRecorder && voiceRecorder.state === 'recording') {
+    voiceRecorder.stop();
+    if (recordingTimer) {
+      clearInterval(recordingTimer);
+      recordingTimer = null;
+    }
+    console.log('🎤 Voice recording stopped');
+  }
+}
+
+function startRecordingTimer() {
+  const timerElement = document.getElementById('recording-timer');
+
+  recordingTimer = setInterval(() => {
+    if (recordingStartTime) {
+      const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+      const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+      const seconds = (elapsed % 60).toString().padStart(2, '0');
+      timerElement.textContent = `${minutes}:${seconds}`;
+    }
+  }, 1000);
+}
+
+async function submitVoiceRecording() {
+  if (voiceChunks.length === 0) {
+    showVoiceError('No audio recorded. Please try again.');
+    return;
+  }
+
+  try {
+    // Create audio blob
+    const audioBlob = new Blob(voiceChunks, { type: 'audio/webm' });
+
+    // Convert to base64 for transmission (optional - could send as FormData)
+    const audioBase64 = await blobToBase64(audioBlob);
+
+    // Show processing state
+    showVoiceState('voice-processing');
+
+    // For now, we'll use browser speech recognition as fallback
+    // In production, this would send to x.ai for processing
+    await processWithBrowserSpeech(audioBlob);
+
+  } catch (error) {
+    console.error('Error processing voice recording:', error);
+    showVoiceError('Failed to process voice recording. Please try again.');
+  }
+}
+
+async function processWithBrowserSpeech(audioBlob) {
+  // Fallback: Use browser speech recognition
+  // In production, this would be replaced with x.ai processing
+
+  try {
+    const transcript = await speechToText(audioBlob);
+
+    if (!transcript || transcript.trim().length === 0) {
+      throw new Error('Could not transcribe speech. Please speak clearly and try again.');
+    }
+
+    // Display transcript
+    document.getElementById('voice-transcript').textContent = transcript;
+
+    // Show review state
+    showVoiceState('voice-review');
+
+    // Process with x.ai (if available) or use basic processing
+    await processTranscriptWithAI(transcript);
+
+  } catch (error) {
+    console.error('Speech processing failed:', error);
+    showVoiceError(error.message || 'Speech processing failed. Please try again.');
+  }
+}
+
+function speechToText(audioBlob) {
+  return new Promise((resolve, reject) => {
+    // This is a simplified version. In production, you'd use:
+    // 1. Web Speech API (browser-based, limited)
+    // 2. x.ai speech-to-text API
+    // 3. Cloud speech services
+
+    // For now, we'll simulate with a placeholder
+    // In real implementation, replace with actual speech recognition
+
+    setTimeout(() => {
+      // Placeholder transcript - replace with actual speech recognition
+      const mockTranscript = "I'm having trouble accessing the Oracle Fusion system. When I try to log in, I get an error message saying invalid credentials. This is urgent because I need to process some invoices before the end of the day.";
+
+      resolve(mockTranscript);
+    }, 2000);
+  });
+}
+
+async function processTranscriptWithAI(transcript) {
+  try {
+    const response = await fetch('/api/tickets/voice/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        transcript: transcript
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to process voice ticket');
+    }
+
+    const result = await response.json();
+
+    // Display AI analysis
+    displayAIAnalysis(result.ai_processing);
+
+    // Enable submit button
+    document.getElementById('submit-voice-ticket').disabled = false;
+
+  } catch (error) {
+    console.error('AI processing failed:', error);
+    document.getElementById('ai-analysis').innerHTML = `
+      <div class="error-message">
+        <p>AI processing failed. You can still submit with basic processing.</p>
+      </div>
+    `;
+    document.getElementById('submit-voice-ticket').disabled = false;
+  }
+}
+
+function displayAIAnalysis(aiData) {
+  const analysisElement = document.getElementById('ai-analysis');
+
+  if (!aiData) {
+    analysisElement.innerHTML = '<div class="analysis-loading">Basic processing only</div>';
+    return;
+  }
+
+  analysisElement.innerHTML = `
+    <div class="analysis-item">
+      <strong>Confidence:</strong>
+      <span class="confidence-badge confidence-${aiData.confidence}">${aiData.confidence}</span>
+    </div>
+    <div class="analysis-item">
+      <strong>Sentiment:</strong> ${aiData.sentiment}
+    </div>
+    ${aiData.tags && aiData.tags.length > 0 ? `
+    <div class="analysis-item">
+      <strong>Tags:</strong> ${aiData.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+    </div>
+    ` : ''}
+    ${aiData.suggested_solution ? `
+    <div class="analysis-item">
+      <strong>Suggested Solution:</strong>
+      <p>${aiData.suggested_solution}</p>
+    </div>
+    ` : ''}
+  `;
+}
+
+async function submitVoiceTicket() {
+  const submitBtn = document.getElementById('submit-voice-ticket');
+  const originalText = submitBtn.textContent;
+
+  try {
+    submitBtn.textContent = 'Creating...';
+    submitBtn.disabled = true;
+
+    // Get transcript
+    const transcript = document.getElementById('voice-transcript').textContent;
+
+    if (!transcript.trim()) {
+      throw new Error('No transcript available');
+    }
+
+    // Submit ticket (this would normally use the AI-processed data)
+    const response = await fetch('/api/requests', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        requester_name: currentUser?.username || 'Voice User',
+        channel: 'voice',
+        description: transcript,
+        category_id: null, // Would be set by AI processing
+        severity: 'medium' // Would be set by AI processing
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to create ticket');
+    }
+
+    const result = await response.json();
+
+    // Success
+    showToast('Voice ticket created successfully!', 'success');
+    closeVoiceModal();
+
+    // Refresh requests if on requests page
+    if (currentSection === 'requests') {
+      loadRequests();
+    }
+
+    // Reset dashboard if needed
+    if (currentSection === 'dashboard') {
+      loadDashboard();
+    }
+
+  } catch (error) {
+    console.error('Error submitting voice ticket:', error);
+    showVoiceError(error.message || 'Failed to create ticket. Please try again.');
+  } finally {
+    submitBtn.textContent = originalText;
+    submitBtn.disabled = false;
+  }
+}
+
+function restartVoiceRecording() {
+  resetVoiceStates();
+  showVoiceState('voice-ready');
+}
+
+function showVoiceError(message) {
+  document.getElementById('voice-error-message').textContent = message;
+  document.getElementById('voice-error').style.display = 'block';
+
+  // Hide other states
+  document.querySelectorAll('.voice-state').forEach(state => {
+    state.style.display = 'none';
+  });
+}
+
+// Utility function to convert blob to base64
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+// Add event listeners for voice modal
+document.addEventListener('DOMContentLoaded', () => {
+  // Voice recording event listeners
+  const stopBtn = document.getElementById('stop-voice-recording');
+  if (stopBtn) {
+    stopBtn.addEventListener('click', () => {
+      stopVoiceRecording();
+      submitVoiceRecording();
+    });
+  }
+
+  // Close modal when clicking outside
+  const voiceModal = document.getElementById('voice-ticket-modal');
+  if (voiceModal) {
+    voiceModal.addEventListener('click', (e) => {
+      if (e.target === voiceModal) {
+        closeVoiceModal();
+      }
+    });
+  }
+});
 
 function hideUserDropdown() {
     elements.userDropdown.classList.remove('show');

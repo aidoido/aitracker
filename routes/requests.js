@@ -447,4 +447,168 @@ router.post('/:id/generate-reply', requireAgent, async (req, res) => {
   }
 });
 
+// Voice ticket creation endpoint - FEATURE FLAG CONTROLLED
+router.post('/voice/create', requireAuth, async (req, res) => {
+  try {
+    // Check if voice features are enabled
+    if (process.env.VOICE_TICKETS_ENABLED !== 'true') {
+      return res.status(403).json({
+        error: 'Voice ticket creation is disabled',
+        details: 'This feature has been temporarily disabled. Please use the regular ticket creation form.'
+      });
+    }
+
+    const { transcript, audioData } = req.body;
+
+    if (!transcript || transcript.trim().length === 0) {
+      return res.status(400).json({ error: 'Voice transcript is required' });
+    }
+
+    console.log('🎤 Processing voice ticket for user:', req.session.username);
+
+    // Process with AI
+    const aiResult = await aiService.processVoiceTicket(transcript);
+
+    // Get admin user for created_by (since this is AI-processed)
+    const adminResult = await pool.query('SELECT id FROM users WHERE role = $1 LIMIT 1', ['admin']);
+    const createdBy = adminResult.rows[0]?.id || req.session.userId;
+
+    // Create ticket with AI-processed data
+    const ticketQuery = `
+      INSERT INTO support_requests
+      (requester_name, channel, description, category, severity, ai_recommendation,
+       voice_transcript, ai_confidence, sentiment, urgency_keywords, voice_tags,
+       key_phrases, created_by)
+      VALUES ($1, $2, $3,
+        (SELECT id FROM categories WHERE name = $4 LIMIT 1),
+        $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      RETURNING *
+    `;
+
+    const ticketValues = [
+      req.session.username || 'Voice User',  // requester_name
+      'voice',                               // channel
+      aiResult.description,                  // description
+      aiResult.category,                     // category (will be converted to ID)
+      aiResult.severity,                     // severity
+      aiResult.suggested_solution,           // ai_recommendation
+      aiResult.transcript,                   // voice_transcript
+      aiResult.confidence,                   // ai_confidence
+      aiResult.sentiment,                    // sentiment
+      aiResult.key_phrases || [],            // urgency_keywords (reusing for key phrases)
+      aiResult.tags || [],                   // voice_tags
+      aiResult.key_phrases || [],            // key_phrases
+      createdBy                             // created_by
+    ];
+
+    console.log('Creating voice ticket with AI data:', {
+      title: aiResult.title,
+      category: aiResult.category,
+      confidence: aiResult.confidence,
+      tags: aiResult.tags?.length || 0
+    });
+
+    const ticketResult = await pool.query(ticketQuery, ticketValues);
+    const ticket = ticketResult.rows[0];
+
+    // Get full ticket data with category name
+    const fullTicketResult = await pool.query(`
+      SELECT sr.*, c.name as category_name, u.username as created_by_username
+      FROM support_requests sr
+      LEFT JOIN categories c ON sr.category_id = c.id
+      LEFT JOIN users u ON sr.created_by = u.id
+      WHERE sr.id = $1
+    `, [ticket.id]);
+
+    console.log('✅ Voice ticket created successfully:', {
+      id: ticket.id,
+      title: aiResult.title,
+      confidence: aiResult.confidence
+    });
+
+    res.status(201).json({
+      ticket: fullTicketResult.rows[0],
+      ai_processing: {
+        confidence: aiResult.confidence,
+        sentiment: aiResult.sentiment,
+        tags: aiResult.tags,
+        key_phrases: aiResult.key_phrases,
+        suggested_solution: aiResult.suggested_solution
+      },
+      voice_features_enabled: true
+    });
+
+  } catch (error) {
+    console.error('❌ Voice ticket creation failed:', error);
+
+    // Provide helpful error messages
+    let errorMessage = 'Failed to create voice ticket';
+    let statusCode = 500;
+
+    if (error.message.includes('Voice ticket processing is disabled')) {
+      errorMessage = 'Voice ticket processing is currently disabled';
+      statusCode = 403;
+    } else if (error.message.includes('AI features are disabled')) {
+      errorMessage = 'AI processing is disabled. Please enable it in Admin settings.';
+      statusCode = 403;
+    } else if (error.message.includes('API key')) {
+      errorMessage = 'AI service is not configured. Please check Admin → AI Settings.';
+      statusCode = 503;
+    }
+
+    res.status(statusCode).json({
+      error: errorMessage,
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      voice_features_enabled: process.env.VOICE_TICKETS_ENABLED === 'true'
+    });
+  }
+});
+
+// Voice ticket analytics endpoint (optional)
+router.get('/voice/analytics', requireAuth, async (req, res) => {
+  try {
+    if (process.env.VOICE_TICKETS_ENABLED !== 'true') {
+      return res.json({ voice_features_enabled: false });
+    }
+
+    const result = await pool.query(`
+      SELECT
+        COUNT(*) as total_voice_tickets,
+        AVG(CASE
+          WHEN ai_confidence = 'high' THEN 3
+          WHEN ai_confidence = 'medium' THEN 2
+          WHEN ai_confidence = 'low' THEN 1
+          ELSE 2
+        END) as avg_confidence,
+        COUNT(*) FILTER (WHERE sentiment = 'frustrated') as frustrated_tickets,
+        COUNT(*) FILTER (WHERE sentiment = 'negative') as negative_tickets,
+        array_agg(DISTINCT unnest(voice_tags)) FILTER (WHERE voice_tags IS NOT NULL) as popular_tags
+      FROM support_requests
+      WHERE voice_transcript IS NOT NULL
+      AND created_at >= CURRENT_DATE - INTERVAL '30 days'
+    `);
+
+    const stats = result.rows[0];
+
+    res.json({
+      voice_features_enabled: true,
+      analytics: {
+        total_voice_tickets: parseInt(stats.total_voice_tickets) || 0,
+        average_confidence: parseFloat(stats.avg_confidence)?.toFixed(2) || '0.00',
+        frustrated_users: parseInt(stats.frustrated_tickets) || 0,
+        negative_sentiment: parseInt(stats.negative_tickets) || 0,
+        popular_tags: stats.popular_tags?.slice(0, 10) || [], // Top 10 tags
+        time_range: 'Last 30 days'
+      }
+    });
+
+  } catch (error) {
+    console.error('Voice analytics error:', error);
+    res.status(500).json({
+      error: 'Failed to load voice analytics',
+      voice_features_enabled: process.env.VOICE_TICKETS_ENABLED === 'true'
+    });
+  }
+});
+
 module.exports = router;
