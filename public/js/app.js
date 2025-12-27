@@ -8,6 +8,22 @@ let voiceChunks = [];
 let recordingTimer = null;
 let recordingStartTime = null;
 
+// Immediate debugging on script load
+console.log('🎤 Voice ticket JavaScript loaded!');
+console.log('openVoiceModal function:', typeof openVoiceModal);
+console.log('forceShowVoiceButtons function:', typeof forceShowVoiceButtons);
+
+// Check if modal exists immediately
+setTimeout(() => {
+  const modal = document.getElementById('voice-ticket-modal');
+  console.log('Voice modal element on load:', modal);
+  if (modal) {
+    console.log('✅ Voice modal found in DOM');
+  } else {
+    console.log('❌ Voice modal NOT found in DOM');
+  }
+}, 100);
+
 // DOM elements
 const elements = {};
 
