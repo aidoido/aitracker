@@ -256,6 +256,15 @@ async function checkVoiceFeaturesEnabled() {
     }
   } catch (error) {
     console.log('Voice features not available:', error.message);
+    // For testing: temporarily force show the button
+    console.log('🔧 Temporarily showing voice button for testing...');
+    const voiceBtn = document.getElementById('voice-ticket-btn');
+    if (voiceBtn) {
+      voiceBtn.style.display = 'inline-block';
+      voiceBtn.style.background = '#ff6b6b';
+      voiceBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg> Voice Ticket (Test Mode)';
+      voiceBtn.addEventListener('click', openVoiceModal);
+    }
   }
 }
 

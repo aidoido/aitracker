@@ -14,14 +14,24 @@ require('dotenv').config();
 async function runMigration() {
   console.log('🎤 Starting Voice Ticket Migration for Ticktz...\n');
 
-  // Import database connection
+  // Import database connection directly
   let pool;
   try {
-    const db = require('./server');
-    pool = db.pool;
+    const { Pool } = require('pg');
+    require('dotenv').config();
+
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+
+    // Test connection
+    await pool.query('SELECT 1');
+    console.log('✅ Database connection established');
   } catch (error) {
-    console.error('❌ Could not connect to database. Make sure server.js exports pool.');
+    console.error('❌ Could not connect to database.');
     console.error('Error:', error.message);
+    console.error('Make sure DATABASE_URL is set in your environment.');
     process.exit(1);
   }
 
