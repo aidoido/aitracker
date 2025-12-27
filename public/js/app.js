@@ -231,6 +231,9 @@ function showUserDropdown() {
 
   // Initialize voice features
   initializeVoiceFeatures();
+
+  // Force show voice buttons immediately (backup)
+  forceShowVoiceButtons();
 }
 
 // Voice ticket functionality
@@ -239,21 +242,60 @@ function initializeVoiceFeatures() {
   checkVoiceFeaturesEnabled();
 }
 
+// Force show voice buttons immediately (backup method)
+function forceShowVoiceButtons() {
+  console.log('🔧 Force showing voice buttons...');
+
+  const buttons = [
+    { id: 'voice-ticket-btn', name: 'Requests section' },
+    { id: 'dashboard-voice-ticket-btn', name: 'Dashboard section' }
+  ];
+
+  buttons.forEach(({ id, name }) => {
+    const voiceBtn = document.getElementById(id);
+    if (voiceBtn) {
+      voiceBtn.style.display = 'inline-block';
+      voiceBtn.style.background = '#4ade80'; // Green background to make it obvious
+      voiceBtn.style.color = 'white';
+      voiceBtn.style.border = 'none';
+      voiceBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg> 🎤 Voice';
+      voiceBtn.addEventListener('click', openVoiceModal);
+      console.log(`✅ Force-enabled ${name} voice button`);
+    } else {
+      console.log(`❌ ${name} voice button still not found`);
+    }
+  });
+}
+
 async function checkVoiceFeaturesEnabled() {
   // Voice features are now enabled by default
   console.log('🎤 Enabling voice ticket features by default...');
+  console.log('Current section:', currentSection);
+  console.log('Current user:', currentUser ? 'Logged in' : 'Not logged in');
 
-  // Show voice ticket button
-  const voiceBtn = document.getElementById('voice-ticket-btn');
-  if (voiceBtn) {
-    voiceBtn.style.display = 'inline-block';
-    // Reset to normal styling (remove test mode red background)
-    voiceBtn.style.background = '';
-    voiceBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg> Voice Ticket';
-  }
+  // Show voice ticket buttons (both in requests section and dashboard)
+  const buttons = [
+    { id: 'voice-ticket-btn', name: 'Requests section' },
+    { id: 'dashboard-voice-ticket-btn', name: 'Dashboard section' }
+  ];
 
-  // Add event listener
-  voiceBtn?.addEventListener('click', openVoiceModal);
+  buttons.forEach(({ id, name }) => {
+    const voiceBtn = document.getElementById(id);
+    console.log(`Checking ${name} button (${id}):`, voiceBtn ? 'Found' : 'Not found');
+
+    if (voiceBtn) {
+      voiceBtn.style.display = 'inline-block';
+      // Reset to normal styling (remove test mode red background)
+      voiceBtn.style.background = '';
+      voiceBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg> Voice Ticket';
+
+      // Add event listener
+      voiceBtn.addEventListener('click', openVoiceModal);
+      console.log(`✅ ${name} voice button enabled and event listener added`);
+    } else {
+      console.log(`❌ ${name} voice button not found in DOM`);
+    }
+  });
 
   // Try to fetch analytics for additional data (optional)
   try {
