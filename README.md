@@ -1,4 +1,4 @@
-# AiTracker
+# Ticktz
 
 A lightweight, AI-assisted internal support tracking system designed to replace ad-hoc chat-based support with structured, auditable data and actionable insights.
 

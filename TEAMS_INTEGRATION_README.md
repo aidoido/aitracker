@@ -1,10 +1,10 @@
 # Microsoft Teams Integration Guide
 
-This guide shows how to integrate Microsoft Teams with your AiTracker to automatically create tickets from Teams messages.
+This guide shows how to integrate Microsoft Teams with your Ticktz to automatically create tickets from Teams messages.
 
 ## 🎯 Integration Overview
 
-**Teams → AiTracker**: Automatically create support tickets when users send direct messages (DMs) in Teams.
+**Teams → Ticktz**: Automatically create support tickets when users send direct messages (DMs) in Teams.
 
 ## 🚀 Setup Instructions
 
@@ -72,7 +72,7 @@ Message:
 
 1. **Save** the flow
 2. **Test** by sending a message in the Teams channel
-3. **Check** your AiTracker for the new ticket
+3. **Check** your Ticktz for the new ticket
 
 ## 🔧 Advanced Configuration
 
@@ -157,7 +157,7 @@ For full two-way integration, you can also set up notifications back to Teams:
 2. Configure webhook URLs in your app settings
 3. Send notifications when tickets are updated
 
-This creates a complete Teams ↔ AiTracker integration!
+This creates a complete Teams ↔ Ticktz integration!
 
 ---
 

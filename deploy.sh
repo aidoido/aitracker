@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# AiTracker - Deployment Script
+# Ticktz - Deployment Script
 # This script helps with Railway deployment setup
 
-echo "🚀 AiTracker Deployment"
+echo "🚀 Ticktz Deployment"
 echo "======================================"
 
 # Check if Railway CLI is installed

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Ticktz</title>
+    <title>Admin Panel - AiTracker</title>
     <link rel="stylesheet" href="/css/style.css">
     <style>
     /* Admin-specific styles that extend the main stylesheet */
@@ -1284,6 +1284,249 @@ Content-Disposition: attachment; filename="support_requests.csv"</code></pre>
             </div>
         </div>
     </div>
+
+    <script>
+                            <h3>🔐 Authentication APIs</h3>
+
+                            <div class="api-endpoint">
+                                <div class="endpoint-header">
+                                    <span class="method post">POST</span>
+                                    <span class="endpoint-url">/api/auth/login</span>
+                                </div>
+                                <p class="endpoint-description">Authenticate user and get session token</p>
+
+                                <div class="api-example">
+                                    <h4>Request Body:</h4>
+                                    <pre><code>{
+  "username": "admin",
+  "password": "yourpassword"
+}</code></pre>
+
+                                    <h4>Response:</h4>
+                                    <pre><code>{
+  "user": {
+    "id": 1,
+    "username": "admin",
+    "email": "admin@example.com",
+    "role": "admin"
+  }
+}</code></pre>
+                                </div>
+                            </div>
+
+                            <div class="api-endpoint">
+                                <div class="endpoint-header">
+                                    <span class="method get">GET</span>
+                                    <span class="endpoint-url">/api/auth/me</span>
+                                </div>
+                                <p class="endpoint-description">Get current authenticated user info</p>
+
+                                <div class="api-example">
+                                    <h4>Response:</h4>
+                                    <pre><code>{
+  "user": {
+    "id": 1,
+    "username": "admin",
+    "role": "admin"
+  }
+}</code></pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="api-section">
+                            <h3>📋 Support Requests APIs</h3>
+
+                            <div class="api-endpoint">
+                                <div class="endpoint-header">
+                                    <span class="method get">GET</span>
+                                    <span class="endpoint-url">/api/requests</span>
+                                </div>
+                                <p class="endpoint-description">Get all support requests with optional filtering</p>
+
+                                <div class="api-example">
+                                    <h4>Query Parameters:</h4>
+                                    <pre><code>?status=open&limit=50&offset=0</code></pre>
+
+                                    <h4>Response:</h4>
+                                    <pre><code>[
+  {
+    "id": 1,
+    "requester_name": "John Doe",
+    "channel": "email",
+    "description": "Issue with login",
+    "status": "open",
+    "severity": "medium",
+    "created_at": "2024-01-01T10:00:00Z"
+  }
+]</code></pre>
+                                </div>
+                            </div>
+
+                            <div class="api-endpoint">
+                                <div class="endpoint-header">
+                                    <span class="method post">POST</span>
+                                    <span class="endpoint-url">/api/requests</span>
+                                </div>
+                                <p class="endpoint-description">Create new support request (agents only)</p>
+
+                                <div class="api-example">
+                                    <h4>Request Body:</h4>
+                                    <pre><code>{
+  "requester_name": "Jane Smith",
+  "channel": "web",
+  "category_id": 1,
+  "severity": "high",
+  "description": "Cannot access dashboard"
+}</code></pre>
+                                </div>
+                            </div>
+
+                            <div class="api-endpoint">
+                                <div class="endpoint-header">
+                                    <span class="method post">POST</span>
+                                    <span class="endpoint-url">/api/requests/teams/create</span>
+                                </div>
+                                <p class="endpoint-description">Create request from Microsoft Teams message</p>
+
+                                <div class="api-example">
+                                    <h4>Request Body:</h4>
+                                    <pre><code>{
+  "message": "Help! Login not working",
+  "userName": "john.doe",
+  "userId": "teams-user-123",
+  "channelId": "teams-channel-456",
+  "teamId": "teams-team-789",
+  "channelName": "General",
+  "teamName": "IT Support"
+}</code></pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="api-section">
+                            <h3>📊 Dashboard APIs</h3>
+
+                            <div class="api-endpoint">
+                                <div class="endpoint-header">
+                                    <span class="method get">GET</span>
+                                    <span class="endpoint-url">/api/dashboard/metrics</span>
+                                </div>
+                                <p class="endpoint-description">Get dashboard metrics (total, today, status counts)</p>
+
+                                <div class="api-example">
+                                    <h4>Response:</h4>
+                                    <pre><code>{
+  "total": 150,
+  "todayCount": 5,
+  "statusCounts": {
+    "open": 45,
+    "in_progress": 12,
+    "closed": 93
+  }
+}</code></pre>
+                                </div>
+                            </div>
+
+                            <div class="api-endpoint">
+                                <div class="endpoint-header">
+                                    <span class="method get">GET</span>
+                                    <span class="endpoint-url">/api/dashboard/export/csv</span>
+                                </div>
+                                <p class="endpoint-description">Export requests data to CSV file</p>
+
+                                <div class="api-example">
+                                    <h4>Query Parameters:</h4>
+                                    <pre><code>?startDate=2024-01-01&endDate=2024-01-31&status=all</code></pre>
+
+                                    <h4>Response:</h4>
+                                    <pre><code>Content-Type: text/csv
+Content-Disposition: attachment; filename="support_requests.csv"</code></pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="api-section">
+                            <h3>🧠 Knowledge Base APIs</h3>
+
+                            <div class="api-endpoint">
+                                <div class="endpoint-header">
+                                    <span class="method get">GET</span>
+                                    <span class="endpoint-url">/api/kb</span>
+                                </div>
+                                <p class="endpoint-description">Get all knowledge base articles</p>
+
+                                <div class="api-example">
+                                    <h4>Query Parameters:</h4>
+                                    <pre><code>?category=1&search=login&limit=20</code></pre>
+                                </div>
+                            </div>
+
+                            <div class="api-endpoint">
+                                <div class="endpoint-header">
+                                    <span class="method post">POST</span>
+                                    <span class="endpoint-url">/api/kb</span>
+                                </div>
+                                <p class="endpoint-description">Create new knowledge base article (agents only)</p>
+
+                                <div class="api-example">
+                                    <h4>Request Body:</h4>
+                                    <pre><code>{
+  "problem_summary": "Password reset issue",
+  "solution": "Go to login page and click 'Forgot Password'",
+  "category_id": 1,
+  "tags": ["password", "login", "reset"]
+}</code></pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="api-section">
+                            <h3>⚙️ Admin APIs</h3>
+
+                            <div class="api-endpoint">
+                                <div class="endpoint-header">
+                                    <span class="method get">GET</span>
+                                    <span class="endpoint-url">/api/admin/users</span>
+                                </div>
+                                <p class="endpoint-description">Get all users (admin only)</p>
+
+                                <div class="api-example">
+                                    <h4>Response:</h4>
+                                    <pre><code>[
+  {
+    "id": 1,
+    "username": "admin",
+    "email": "admin@example.com",
+    "role": "admin",
+    "created_at": "2024-01-01T00:00:00Z"
+  }
+]</code></pre>
+                                </div>
+                            </div>
+
+                            <div class="api-endpoint">
+                                <div class="endpoint-header">
+                                    <span class="method put">PUT</span>
+                                    <span class="endpoint-url">/api/admin/ai-settings</span>
+                                </div>
+                                <p class="endpoint-description">Update AI configuration (admin only)</p>
+
+                                <div class="api-example">
+                                    <h4>Request Body:</h4>
+                                    <pre><code>{
+  "provider": "openai",
+  "api_key": "sk-...",
+  "model_name": "gpt-4",
+  "categorization_enabled": true,
+  "replies_enabled": true,
+  "temperature": 0.7
+}</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
     <script>
         let currentUserId = null;

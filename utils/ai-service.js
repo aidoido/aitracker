@@ -78,7 +78,7 @@ class AIService {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
         'HTTP-Referer': 'https://your-app.com',
-        'X-Title': 'AiTracker AI'
+        'X-Title': 'Ticktz AI'
       };
     } else {
       // Default to x.ai - try different possible endpoints
