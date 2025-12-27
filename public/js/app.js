@@ -259,8 +259,12 @@ function forceShowVoiceButtons() {
       voiceBtn.style.color = 'white';
       voiceBtn.style.border = 'none';
       voiceBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg> 🎤 Voice';
+
+      // Add both event listener and onclick for maximum compatibility
       voiceBtn.addEventListener('click', openVoiceModal);
-      console.log(`✅ Force-enabled ${name} voice button`);
+      voiceBtn.onclick = openVoiceModal;
+
+      console.log(`✅ Force-enabled ${name} voice button with dual event handlers`);
     } else {
       console.log(`❌ ${name} voice button still not found`);
     }
@@ -292,6 +296,15 @@ async function checkVoiceFeaturesEnabled() {
       // Add event listener
       voiceBtn.addEventListener('click', openVoiceModal);
       console.log(`✅ ${name} voice button enabled and event listener added`);
+
+      // Add visual feedback on click
+      voiceBtn.addEventListener('click', () => {
+        console.log(`🎤 ${name} voice button clicked!`);
+        voiceBtn.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+          voiceBtn.style.transform = '';
+        }, 150);
+      });
     } else {
       console.log(`❌ ${name} voice button not found in DOM`);
     }
@@ -308,9 +321,18 @@ async function checkVoiceFeaturesEnabled() {
 }
 
 function openVoiceModal() {
+  console.log('🎤 openVoiceModal called!');
   const modal = document.getElementById('voice-ticket-modal');
-  modal.style.display = 'block';
-  showVoiceState('voice-ready');
+  console.log('Voice modal element:', modal);
+
+  if (modal) {
+    modal.style.display = 'block';
+    showVoiceState('voice-ready');
+    console.log('✅ Voice modal opened successfully');
+  } else {
+    console.error('❌ Voice modal element not found!');
+    alert('Voice modal not found. Please refresh the page.');
+  }
 }
 
 function closeVoiceModal() {
@@ -664,6 +686,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+// Global test function for debugging
+window.testVoiceModal = function() {
+  console.log('🧪 Testing voice modal manually...');
+  openVoiceModal();
+};
+
+window.forceShowVoiceButtons = forceShowVoiceButtons;
 
 function hideUserDropdown() {
     elements.userDropdown.classList.remove('show');
